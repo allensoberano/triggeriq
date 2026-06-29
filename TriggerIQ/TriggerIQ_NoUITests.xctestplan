@@ -1,0 +1,39 @@
+{
+  "configurations" : [
+    {
+      "id" : "B960600B-D146-4A66-8DFB-C86D8151A8A6",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:TriggerIQ.xcodeproj",
+      "identifier" : "9F33DA592FF2225C002025ED",
+      "name" : "TriggerIQ"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:TriggerIQ.xcodeproj",
+        "identifier" : "9F33DA682FF2225D002025ED",
+        "name" : "TriggerIQTests"
+      }
+    },
+    {
+      "enabled" : false,
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:TriggerIQ.xcodeproj",
+        "identifier" : "9F33DA722FF2225D002025ED",
+        "name" : "TriggerIQUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
