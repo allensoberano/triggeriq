@@ -24,14 +24,16 @@ final class NotificationSchedulingService: NotificationSchedulingServiceProtocol
             identifier: checkInID(meal: meal, type: .oneHour),
             title: "How are you feeling?",
             body: "It's been an hour since your meal. Any symptoms?",
-            at: meal.timestamp.addingTimeInterval(60 * 60)
+            at: meal.timestamp.addingTimeInterval(10)           // DEBUG: 10 seconds
+            // at: meal.timestamp.addingTimeInterval(60 * 60)   // PRODUCTION: 1 hour
         )
 
         await scheduleCheckIn(
             identifier: checkInID(meal: meal, type: .fourHour),
             title: "Check in time",
             body: "4 hours since your meal — any bloating, fatigue, or joint pain?",
-            at: meal.timestamp.addingTimeInterval(4 * 60 * 60)
+            at: meal.timestamp.addingTimeInterval(20)              // DEBUG: 20 seconds
+            // at: meal.timestamp.addingTimeInterval(4 * 60 * 60) // PRODUCTION: 4 hours
         )
     }
 
