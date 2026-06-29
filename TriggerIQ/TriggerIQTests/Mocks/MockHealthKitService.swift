@@ -1,4 +1,6 @@
 import SwiftData
+import Foundation
+
 @testable import TriggerIQ
 
 final class MockHealthKitService: HealthKitServiceProtocol, @unchecked Sendable {

@@ -1,6 +1,8 @@
 import Testing
 import SwiftData
 @testable import TriggerIQ
+import Foundation
+import UserNotifications
 
 @MainActor
 struct NotificationSchedulingServiceTests {
