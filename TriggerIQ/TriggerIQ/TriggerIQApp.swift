@@ -12,7 +12,14 @@ import SwiftData
 struct TriggerIQApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Meal.self,
+            FoodTag.self,
+            CheckIn.self,
+            DailyLog.self,
+            BowelMovementEntry.self,
+            HydrationEntry.self,
+            UserProfile.self,
+            SuspectFoodPattern.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
