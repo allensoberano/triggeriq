@@ -52,6 +52,20 @@ The real type conforms to the protocol via extension. The mock is a plain `final
 
 **Never call system APIs directly inside a service.** Always route through the injected protocol dependency.
 
+### SwiftData models and actors
+
+Any protocol whose methods accept SwiftData `@Model` objects (e.g. `Meal`, `DailyLog`) must be marked `@MainActor` — SwiftData models are non-Sendable and cannot safely cross actor boundaries. Mark both the protocol and its implementation `@MainActor`:
+
+```swift
+@MainActor
+protocol MyServiceProtocol {
+    func doSomething(with meal: Meal) async
+}
+
+@MainActor
+final class MyService: MyServiceProtocol { ... }
+```
+
 ---
 
 ## Testing
@@ -59,7 +73,7 @@ The real type conforms to the protocol via extension. The mock is a plain `final
 - One test file per service: `<ServiceName>Tests.swift` in `TriggerIQTests/`
 - Mocks live in `TriggerIQTests/Mocks/` and are shared across test files
 - Use Swift Testing (`@Test`, `#expect`) — not XCTest
-- For SwiftData in tests: use `ModelConfiguration(isStoredInMemoryOnly: true)`
+- For SwiftData in tests: declare `container: ModelContainer` and `context: ModelContext` as stored properties on the test struct — Swift Testing recreates the struct before each `@Test`, giving each test a fresh isolated store automatically
 - For HealthKit: use `MockHealthKitService` (the real store is unavailable in tests)
 
 ---
