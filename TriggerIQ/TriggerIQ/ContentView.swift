@@ -2,9 +2,26 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @State private var showLogMeal = false
+
     var body: some View {
-        Text("TriggerIQ")
-            .font(.largeTitle)
+        NavigationStack {
+            VStack {
+                Text("TriggerIQ")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+
+                Button("Log Meal") {
+                    showLogMeal = true
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 24)
+            }
+            .navigationTitle("Today")
+        }
+        .sheet(isPresented: $showLogMeal) {
+            LogMealSheet()
+        }
     }
 }
 

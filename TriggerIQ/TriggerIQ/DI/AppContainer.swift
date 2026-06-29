@@ -11,6 +11,7 @@ final class AppContainer {
         assembler = Assembler([
             NotificationServiceAssembly(),
             HealthKitServiceAssembly(),
+            AnalysisServiceAssembly(),
         ])
     }
 }
