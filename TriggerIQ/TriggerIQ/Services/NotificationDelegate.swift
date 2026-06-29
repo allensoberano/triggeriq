@@ -1,5 +1,5 @@
 import UserNotifications
-internal import Combine
+import Combine
 
 @MainActor
 final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate, ObservableObject {
