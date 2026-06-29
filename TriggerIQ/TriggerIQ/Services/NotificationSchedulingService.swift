@@ -17,8 +17,12 @@ final class NotificationSchedulingService: NotificationSchedulingServiceProtocol
 
     func scheduleCheckIns(for meal: Meal) async {
         let settings = await center.notificationSettings()
+        print("[Notifications] Auth status: \(settings.authorizationStatus.rawValue)")
         guard settings.authorizationStatus == .authorized ||
-              settings.authorizationStatus == .provisional else { return }
+              settings.authorizationStatus == .provisional else {
+            print("[Notifications] Not authorized — skipping scheduling")
+            return
+        }
 
         await scheduleCheckIn(
             identifier: checkInID(meal: meal, type: .oneHour),
@@ -69,7 +73,10 @@ final class NotificationSchedulingService: NotificationSchedulingServiceProtocol
     // MARK: - Private
 
     private func scheduleCheckIn(identifier: String, title: String, body: String, at date: Date) async {
-        guard date > Date() else { return }
+        guard date > Date() else {
+            print("[Notifications] Skipping \(identifier) — date \(date) is in the past")
+            return
+        }
 
         let content = UNMutableNotificationContent()
         content.title = title
@@ -77,14 +84,18 @@ final class NotificationSchedulingService: NotificationSchedulingServiceProtocol
         content.sound = .default
         content.userInfo = ["notificationIdentifier": identifier]
 
-        let components = Calendar.current.dateComponents(
-            [.year, .month, .day, .hour, .minute],
-            from: date
+        let trigger = UNTimeIntervalNotificationTrigger(
+            timeInterval: date.timeIntervalSinceNow,
+            repeats: false
         )
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
-        try? await center.add(request)
+        do {
+            try await center.add(request)
+            print("[Notifications] Scheduled \(identifier) in \(Int(date.timeIntervalSinceNow))s")
+        } catch {
+            print("[Notifications] Failed to schedule \(identifier): \(error)")
+        }
     }
 
     private func checkInID(meal: Meal, type: CheckInType) -> String {
