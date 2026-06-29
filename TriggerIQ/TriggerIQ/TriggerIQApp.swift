@@ -1,15 +1,11 @@
-//
-//  TriggerIQApp.swift
-//  TriggerIQ
-//
-//  Created by Allen Soberano on 6/28/26.
-//
-
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 @main
 struct TriggerIQApp: App {
+    @State private var pendingCheckIn: CheckInDestination?
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Meal.self,
@@ -34,10 +30,33 @@ struct TriggerIQApp: App {
         WindowGroup {
             ContentView()
                 .task {
+                    UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
                     await resolve(NotificationPermissionManager.self).requestPermissionIfNeeded()
                     try? await resolve(HealthKitServiceProtocol.self).requestAuthorization()
+                }
+                .sheet(item: $pendingCheckIn) { destination in
+                    CheckInView(vm: CheckInViewModel(
+                        checkInType: destination.checkInType,
+                        mealID: destination.mealID
+                    ))
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openCheckIn)) { note in
+                    guard let destination = note.object as? CheckInDestination else { return }
+                    pendingCheckIn = destination
                 }
         }
         .modelContainer(sharedModelContainer)
     }
+}
+
+// MARK: - Notification deep-link
+
+struct CheckInDestination: Identifiable {
+    let id = UUID()
+    let checkInType: CheckInType
+    let mealID: PersistentIdentifier?
+}
+
+extension Notification.Name {
+    static let openCheckIn = Notification.Name("openCheckIn")
 }

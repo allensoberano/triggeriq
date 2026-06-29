@@ -68,6 +68,25 @@ flowchart TD
 
 ---
 
+## Epic 4 — Check-in Flow
+
+```mermaid
+flowchart TD
+    A([Notification tap]) --> B[NotificationDelegate\ndidReceive response]
+    B --> C[Parse identifier\ntype + mealID]
+    C --> D[Post openCheckIn\nNotification]
+    D --> E[TriggerIQApp\npresents CheckInView sheet]
+    E --> F{User action}
+    F -->|Rate symptoms| G[CheckInViewModel.save\ninserts CheckIn to SwiftData]
+    F -->|Skip| H[CheckInViewModel.skip\nskipped=true, no symptom data]
+    F -->|Log bowel/hydration| I[BristolHydrationView sheet]
+    I --> J[Insert BowelMovementEntry\nor HydrationEntry to DailyLog]
+    G --> K([Sheet dismisses])
+    H --> K
+```
+
+---
+
 ## Epic 3 — Meal Logging Flow
 
 ```mermaid
