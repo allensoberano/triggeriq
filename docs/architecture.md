@@ -122,3 +122,33 @@ flowchart LR
     AA --> AS[AnalysisService\nProtocol → StubAnalysisService]
     R([resolve&lt;T&gt;]) --> AC
 ```
+
+
+---
+
+## Epic 5 — Today Screen
+
+```mermaid
+flowchart TD
+    A([App Launch]) --> B[TodayView]
+    B --> C[TodayViewModel.load]
+    C --> D[Fetch today's Meals]
+    C --> E{DailyLog\nexists?}
+    E -->|yes| F[Load confounders\nstress / alcohol / caffeine]
+    E -->|no| G[Create DailyLog\nfor today]
+    B --> H[TodayViewModel.refreshHealthKit]
+    H --> I[HealthKitService\nfetchAndCacheDaily]
+    I --> J[Update DailyLog\ncached metrics]
+
+    B --> K{hasPendingCheckIn?}
+    K -->|yes| L[Pending check-in card\nshows in list]
+    L --> M[Tap → CheckInView sheet\nwith correct type + mealID]
+    K -->|no| N[No card shown]
+
+    B --> O[Confounder +/- controls]
+    O --> P[onChange → saveConfounders\npersists to DailyLog]
+
+    B --> Q[Log Meal + button]
+    Q --> R[LogMealSheet]
+    R --> S[On dismiss → reload]
+```
