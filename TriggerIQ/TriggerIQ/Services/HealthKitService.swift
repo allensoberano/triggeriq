@@ -72,7 +72,7 @@ final class HealthKitService: HealthKitServiceProtocol {
     private func fetchSleep(start: Date, end: Date) async throws -> SleepResult {
         let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
-        let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        let sort = NSSortDescriptor(key: "startDate", ascending: true)
 
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sort]) { _, samples, error in
@@ -107,7 +107,7 @@ final class HealthKitService: HealthKitServiceProtocol {
 
     private func fetchLatestQuantity(_ identifier: HKQuantityTypeIdentifier, predicate: NSPredicate, unit: HKUnit) async throws -> Double? {
         let type = HKQuantityType.quantityType(forIdentifier: identifier)!
-        let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        let sort = NSSortDescriptor(key: "startDate", ascending: false)
 
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: 1, sortDescriptors: [sort]) { _, samples, error in
@@ -133,7 +133,7 @@ final class HealthKitService: HealthKitServiceProtocol {
 
     private func fetchWorkout(start: Date, end: Date) async throws -> HKWorkout? {
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
-        let sort = NSSortDescriptor(key: HKSampleSortIdentifierDuration, ascending: false)
+        let sort = NSSortDescriptor(key: "duration", ascending: false)
 
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(sampleType: .workoutType(), predicate: predicate, limit: 1, sortDescriptors: [sort]) { _, samples, error in
