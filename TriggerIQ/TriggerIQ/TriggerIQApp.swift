@@ -35,6 +35,7 @@ struct TriggerIQApp: App {
             ContentView()
                 .task {
                     await resolve(NotificationPermissionManager.self).requestPermissionIfNeeded()
+                    try? await resolve(HealthKitServiceProtocol.self).requestAuthorization()
                 }
         }
         .modelContainer(sharedModelContainer)

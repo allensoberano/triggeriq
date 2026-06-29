@@ -31,6 +31,7 @@
 		9F33DA5A2FF2225C002025ED /* TriggerIQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TriggerIQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F33DA692FF2225D002025ED /* TriggerIQTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TriggerIQTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F33DA732FF2225D002025ED /* TriggerIQUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TriggerIQUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F33DB8A2FF2D9EF002025ED /* TriggerIQ_NoUITests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TriggerIQ_NoUITests.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +81,7 @@
 		9F33DA512FF2225C002025ED = {
 			isa = PBXGroup;
 			children = (
+				9F33DB8A2FF2D9EF002025ED /* TriggerIQ_NoUITests.xctestplan */,
 				9F33DA5C2FF2225C002025ED /* TriggerIQ */,
 				9F33DA6C2FF2225D002025ED /* TriggerIQTests */,
 				9F33DA762FF2225D002025ED /* TriggerIQUITests */,

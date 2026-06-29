@@ -9,6 +9,8 @@ extension UNNotificationSettings: NotificationSettingsProtocol {}
 protocol NotificationCenterProtocol {
     func notificationSettings() async -> NotificationSettingsProtocol
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
+    func add(_ request: UNNotificationRequest) async throws
+    func removePendingNotificationRequests(withIdentifiers: [String])
 }
 
 extension UNUserNotificationCenter: NotificationCenterProtocol {
