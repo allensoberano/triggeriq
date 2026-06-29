@@ -59,7 +59,7 @@ final class NotificationSchedulingService: NotificationSchedulingServiceProtocol
             checkInID(meal: meal, type: .oneHour),
             checkInID(meal: meal, type: .fourHour)
         ]
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+        center.removePendingNotificationRequests(withIdentifiers: ids)
     }
 
     // MARK: - Private
@@ -80,7 +80,7 @@ final class NotificationSchedulingService: NotificationSchedulingServiceProtocol
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
-        try? await UNUserNotificationCenter.current().add(request)
+        try? await center.add(request)
     }
 
     private func checkInID(meal: Meal, type: CheckInType) -> String {
