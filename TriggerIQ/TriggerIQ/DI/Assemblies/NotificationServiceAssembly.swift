@@ -4,7 +4,7 @@ import UserNotifications
 final class NotificationServiceAssembly: Assembly {
     func assemble(container: Container) {
         container.register(NotificationCenterProtocol.self) { _ in
-            UNUserNotificationCenter.current()
+            LiveNotificationCenter()
         }
 
         container.register(NotificationPermissionManager.self) { r in

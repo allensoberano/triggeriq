@@ -11,7 +11,7 @@ protocol NotificationSchedulingServiceProtocol {
 final class NotificationSchedulingService: NotificationSchedulingServiceProtocol {
     private let center: NotificationCenterProtocol
 
-    init(center: NotificationCenterProtocol = UNUserNotificationCenter.current()) {
+    init(center: NotificationCenterProtocol = LiveNotificationCenter()) {
         self.center = center
     }
 
