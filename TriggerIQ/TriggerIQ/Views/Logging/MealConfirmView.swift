@@ -7,12 +7,14 @@ struct MealConfirmView: View {
     let context: ModelContext
 
     @State private var editedDescription: String
+    @State private var foodTags: [ParsedFoodTag]
 
     init(vm: LogMealViewModel, result: AnalysisResult, context: ModelContext) {
         self.vm = vm
         self.result = result
         self.context = context
         self._editedDescription = State(initialValue: result.rawDescription)
+        self._foodTags = State(initialValue: result.foodTags)
     }
 
     var body: some View {
@@ -37,10 +39,13 @@ struct MealConfirmView: View {
                 ScoreRow(score: result.predictedScore)
             }
 
-            if !result.foodTags.isEmpty {
+            if !foodTags.isEmpty {
                 Section("Detected ingredients") {
-                    ForEach(result.foodTags, id: \.rawName) { tag in
+                    ForEach(foodTags, id: \.rawName) { tag in
                         FoodTagRow(tag: tag)
+                    }
+                    .onDelete { indices in
+                        foodTags.remove(atOffsets: indices)
                     }
                 }
             }
@@ -54,7 +59,7 @@ struct MealConfirmView: View {
 
             Section {
                 Button {
-                    Task { await vm.save(result: result, editedDescription: editedDescription, context: context) }
+                    Task { await vm.save(result: result, editedDescription: editedDescription, editedTags: foodTags, context: context) }
                 } label: {
                     Text("Save Meal")
                         .frame(maxWidth: .infinity)

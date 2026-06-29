@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+internal import Combine
 
 @MainActor
 final class LogMealViewModel: ObservableObject {
@@ -53,7 +54,7 @@ final class LogMealViewModel: ObservableObject {
         }
     }
 
-    func save(result: AnalysisResult, editedDescription: String, context: ModelContext) async {
+    func save(result: AnalysisResult, editedDescription: String, editedTags: [ParsedFoodTag], context: ModelContext) async {
         let meal = Meal(
             timestamp: Date(),
             mealType: mealType,
@@ -63,9 +64,9 @@ final class LogMealViewModel: ObservableObject {
             aiModelVersion: result.modelVersion
         )
         meal.portionEstimate = result.portionEstimate
-        meal.userEdited = editedDescription != result.rawDescription
+        meal.userEdited = editedDescription != result.rawDescription || editedTags.count != result.foodTags.count
 
-        for tag in result.foodTags {
+        for tag in editedTags {
             let foodTag = FoodTag(
                 rawName: tag.rawName,
                 canonicalTag: tag.canonicalTag,

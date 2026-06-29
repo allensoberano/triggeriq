@@ -73,7 +73,7 @@ struct AnalysisServiceTests {
             modelVersion: "mock-1.0"
         )
 
-        await vm.save(result: result, editedDescription: "Grilled chicken", context: context)
+        await vm.save(result: result, editedDescription: "Grilled chicken", editedTags: result.foodTags, context: context)
 
         let descriptor = FetchDescriptor<Meal>()
         let meals = try context.fetch(descriptor)
@@ -98,7 +98,7 @@ struct AnalysisServiceTests {
             modelVersion: "mock-1.0"
         )
 
-        await vm.save(result: result, editedDescription: "Salad", context: context)
+        await vm.save(result: result, editedDescription: "Salad", editedTags: result.foodTags, context: context)
 
         let descriptor = FetchDescriptor<FoodTag>()
         let tags = try context.fetch(descriptor)
@@ -118,11 +118,35 @@ struct AnalysisServiceTests {
             modelVersion: "mock-1.0"
         )
 
-        await vm.save(result: result, editedDescription: "User edited description", context: context)
+        await vm.save(result: result, editedDescription: "User edited description", editedTags: result.foodTags, context: context)
 
         let descriptor = FetchDescriptor<Meal>()
         let meal = try context.fetch(descriptor).first!
         #expect(meal.userEdited == true)
+    }
+
+    @Test func saveMarksMealAsUserEditedWhenTagDeleted() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        let result = AnalysisResult(
+            rawDescription: "Salad",
+            predictedScore: 2.0,
+            foodTags: [
+                ParsedFoodTag(rawName: "romaine", canonicalTag: "leafy greens", category: "vegetable"),
+                ParsedFoodTag(rawName: "cheese", canonicalTag: "dairy", category: "dairy")
+            ],
+            portionEstimate: nil,
+            modelVersion: "mock-1.0"
+        )
+
+        let editedTags = [result.foodTags[0]]
+        await vm.save(result: result, editedDescription: result.rawDescription, editedTags: editedTags, context: context)
+
+        let meal = try context.fetch(FetchDescriptor<Meal>()).first!
+        #expect(meal.userEdited == true)
+        #expect(meal.foodTags.count == 1)
     }
 
     @Test func saveTriggersCheckInScheduling() async throws {
@@ -138,7 +162,7 @@ struct AnalysisServiceTests {
             modelVersion: "mock-1.0"
         )
 
-        await vm.save(result: result, editedDescription: "Test", context: context)
+        await vm.save(result: result, editedDescription: "Test", editedTags: result.foodTags, context: context)
 
         #expect(mockScheduling.scheduleCheckInsCalled == true)
         #expect(mockScheduling.scheduleMorningSummaryCalled == true)
