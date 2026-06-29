@@ -1,23 +1,19 @@
 import Swinject
-import UserNotifications
 
 final class AppContainer {
     static let shared = AppContainer()
-    let container = Container()
+
+    private let assembler: Assembler
+
+    var resolver: Resolver { assembler.resolver }
 
     private init() {
-        registerServices()
+        assembler = Assembler([
+            NotificationServiceAssembly(),
+        ])
     }
+}
 
-    private func registerServices() {
-        container.register(NotificationCenterProtocol.self) { _ in
-            UNUserNotificationCenter.current()
-        }
-
-        container.register(NotificationPermissionManager.self) { r in
-            NotificationPermissionManager(
-                center: r.resolve(NotificationCenterProtocol.self)!
-            )
-        }.inObjectScope(.container)
-    }
+func resolve<T>(_ type: T.Type = T.self) -> T {
+    AppContainer.shared.resolver.resolve(T.self)!
 }
