@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
-internal import Combine
+import Combine
 
 @MainActor
 final class LogMealViewModel: ObservableObject {

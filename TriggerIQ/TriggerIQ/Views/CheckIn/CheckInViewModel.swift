@@ -1,6 +1,6 @@
 import SwiftUI
 import SwiftData
-internal import Combine
+import Combine
 
 @MainActor
 final class CheckInViewModel: ObservableObject {
