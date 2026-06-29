@@ -65,3 +65,41 @@ flowchart TD
     F & G & H & I --> J[Write to DailyLog]
     J --> K[context.save]
 ```
+
+---
+
+## Epic 3 — Meal Logging Flow
+
+```mermaid
+flowchart TD
+    A([Log Meal button]) --> B[LogMealSheet]
+    B --> C{Input method}
+    C -->|photo| D[PhotosPicker\nload image data]
+    C -->|text| E[Manual text entry]
+    D --> F[AnalysisService\nanalyze imageData]
+    E --> G[AnalysisService\nanalyze text]
+    F --> H[AnalysisResult]
+    G --> H
+    H --> I[MealConfirmView\nreview + edit]
+    I -->|Save| J[Create Meal + FoodTags\ninsert into ModelContext]
+    J --> K[NotificationSchedulingService\nscheduleCheckIns]
+    K --> L[Sheet dismisses]
+    I -->|Edit| B
+```
+
+---
+
+## DI — Assembly & Resolution (Epic 3)
+
+```mermaid
+flowchart LR
+    AC[AppContainer\nAssembler] --> NA[NotificationService\nAssembly]
+    AC --> HA[HealthKitService\nAssembly]
+    AC --> AA[AnalysisService\nAssembly]
+    NA --> NCP[NotificationCenter\nProtocol]
+    NA --> NPM[NotificationPermission\nManager]
+    NA --> NSS[NotificationScheduling\nService]
+    HA --> HKS[HealthKitService\nProtocol]
+    AA --> AS[AnalysisService\nProtocol → StubAnalysisService]
+    R([resolve&lt;T&gt;]) --> AC
+```
