@@ -33,6 +33,9 @@ struct TriggerIQApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    await NotificationPermissionManager.shared.requestPermissionIfNeeded()
+                }
         }
         .modelContainer(sharedModelContainer)
     }
