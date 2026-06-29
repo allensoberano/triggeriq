@@ -6,6 +6,10 @@ import UserNotifications
 struct TriggerIQApp: App {
     @State private var pendingCheckIn: CheckInDestination?
 
+    init() {
+        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Meal.self,
@@ -30,7 +34,6 @@ struct TriggerIQApp: App {
         WindowGroup {
             ContentView()
                 .task {
-                    UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
                     await resolve(NotificationPermissionManager.self).requestPermissionIfNeeded()
                     try? await resolve(HealthKitServiceProtocol.self).requestAuthorization()
                 }
