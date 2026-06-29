@@ -23,8 +23,9 @@ struct ContentView: View {
 
                 Button("Check notification status") {
                     Task {
-                        let settings = await UNUserNotificationCenter.current().notificationSettings()
-                        let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+                        let center = UNUserNotificationCenter.current()
+                        let settings: UNNotificationSettings = await center.notificationSettings()
+                        let pending = await center.pendingNotificationRequests()
                         debugInfo = "Auth: \(settings.authorizationStatus.rawValue)\nPending: \(pending.count)\n"
                             + pending.map { "• \($0.identifier)" }.joined(separator: "\n")
                     }
