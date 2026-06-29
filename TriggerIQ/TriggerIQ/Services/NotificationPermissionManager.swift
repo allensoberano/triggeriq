@@ -15,7 +15,8 @@ protocol NotificationCenterProtocol {
 
 extension UNUserNotificationCenter: NotificationCenterProtocol {
     func notificationSettings() async -> NotificationSettingsProtocol {
-        await self.notificationSettings() as UNNotificationSettings
+        let settings: UNNotificationSettings = await self.notificationSettings()
+        return settings
     }
 }
 
