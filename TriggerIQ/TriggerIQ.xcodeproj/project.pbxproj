@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B4E5F6A92FF2225C002025ED /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = B4E5F6A82FF2225C002025ED /* Swinject */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		9F33DA6A2FF2225D002025ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4E5F6A92FF2225C002025ED /* Swinject in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = TriggerIQ;
 			packageProductDependencies = (
+				B4E5F6A82FF2225C002025ED /* Swinject */,
 			);
 			productName = TriggerIQ;
 			productReference = 9F33DA5A2FF2225C002025ED /* TriggerIQ.app */;
@@ -197,6 +203,9 @@
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F33DA5B2FF2225C002025ED /* Products */;
+			packages = (
+				B4E5F6A72FF2225C002025ED /* XCRemoteSwiftPackageReference "Swinject" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -586,6 +595,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B4E5F6A72FF2225C002025ED /* XCRemoteSwiftPackageReference "Swinject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Swinject/Swinject.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B4E5F6A82FF2225C002025ED /* Swinject */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B4E5F6A72FF2225C002025ED /* XCRemoteSwiftPackageReference "Swinject" */;
+			productName = Swinject;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9F33DA522FF2225C002025ED /* Project object */;
 }
