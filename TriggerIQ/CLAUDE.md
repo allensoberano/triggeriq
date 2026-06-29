@@ -8,7 +8,7 @@ All services use **Swinject** via `AppContainer`. Never access `AppContainer.sha
 resolve(SomeServiceProtocol.self).doSomething()
 ```
 
-Each epic gets its own `Assembly` file in `DI/Assemblies/` registered in `AppContainer`.
+Each epic gets its own `Assembly` file in `DI/Assemblies/` registered in `AppContainer`. **Keep one Assembly per service/feature** — this is intentional prep for future modularization into Swift packages, where each package will own its Assembly and self-register. Don't consolidate into a single ServicesAssembly.
 
 ---
 
