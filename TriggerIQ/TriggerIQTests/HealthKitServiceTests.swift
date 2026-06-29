@@ -6,12 +6,16 @@ import Foundation
 
 @MainActor
 struct HealthKitServiceTests {
+    // Re-initialized fresh for every test since Swift Testing recreates
+    // the struct before each @Test function.
+    let container: ModelContainer
+    let context: ModelContext
 
-    private func makeContext() throws -> ModelContext {
+    init() throws {
         let schema = Schema([DailyLog.self, BowelMovementEntry.self, HydrationEntry.self])
-        let config = ModelConfiguration(UUID().uuidString, schema: schema, isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return container.mainContext
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        container = try ModelContainer(for: schema, configurations: [config])
+        context = container.mainContext
     }
 
     // MARK: - MockHealthKitService (protocol-level tests)
@@ -24,19 +28,13 @@ struct HealthKitServiceTests {
 
     @Test func fetchAndCacheRecordsDate() async throws {
         let mock = MockHealthKitService()
-        let context = try makeContext()
-        let date = Date()
-
-        try await mock.fetchAndCacheDaily(for: date, context: context)
-
+        try await mock.fetchAndCacheDaily(for: Date(), context: context)
         #expect(mock.fetchedDates.count == 1)
     }
 
     @Test func fetchAndCacheThrowsWhenFlagSet() async throws {
         let mock = MockHealthKitService()
         mock.shouldThrow = true
-        let context = try makeContext()
-
         await #expect(throws: (any Error).self) {
             try await mock.fetchAndCacheDaily(for: Date(), context: context)
         }
@@ -45,16 +43,13 @@ struct HealthKitServiceTests {
     // MARK: - DailyLog creation logic
 
     @Test func fetchAndCacheCreatesDailyLogForDate() async throws {
-        let context = try makeContext()
         let startOfDay = Calendar.current.startOfDay(for: Date())
 
-        // Insert a DailyLog manually to simulate what HealthKitService would do
         let log = DailyLog(date: startOfDay)
         log.stepCount = 8000
         context.insert(log)
         try context.save()
 
-        // Verify it can be fetched back by date
         let descriptor = FetchDescriptor<DailyLog>(
             predicate: #Predicate { $0.date == startOfDay }
         )
@@ -64,7 +59,6 @@ struct HealthKitServiceTests {
     }
 
     @Test func dailyLogFieldsMapCorrectly() throws {
-        let context = try makeContext()
         let date = Calendar.current.startOfDay(for: Date())
 
         let log = DailyLog(date: date)
