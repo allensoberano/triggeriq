@@ -2,8 +2,9 @@ import Testing
 import Foundation
 @testable import TriggerIQ
 
+@MainActor
 struct NotificationDelegateTests {
-    private let delegate = NotificationDelegate.shared
+    private let delegate = NotificationDelegate()
 
     @Test func parsesOneHourIdentifier() {
         let id = "checkin-\(UUID().uuidString)-oneHour"
