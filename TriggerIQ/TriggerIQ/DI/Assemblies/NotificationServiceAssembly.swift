@@ -12,5 +12,11 @@ final class NotificationServiceAssembly: Assembly {
                 center: r.resolve(NotificationCenterProtocol.self)!
             )
         }.inObjectScope(.container)
+
+        container.register(NotificationSchedulingServiceProtocol.self) { r in
+            NotificationSchedulingService(
+                center: r.resolve(NotificationCenterProtocol.self)!
+            )
+        }.inObjectScope(.container)
     }
 }

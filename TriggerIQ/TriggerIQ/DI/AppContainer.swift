@@ -10,6 +10,7 @@ final class AppContainer {
     private init() {
         assembler = Assembler([
             NotificationServiceAssembly(),
+            HealthKitServiceAssembly(),
         ])
     }
 }
