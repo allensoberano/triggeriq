@@ -34,7 +34,8 @@ struct TriggerIQApp: App {
         WindowGroup {
             ContentView()
                 .task {
-                    await NotificationPermissionManager.shared.requestPermissionIfNeeded()
+                    let manager = AppContainer.shared.container.resolve(NotificationPermissionManager.self)!
+                    await manager.requestPermissionIfNeeded()
                 }
         }
         .modelContainer(sharedModelContainer)
