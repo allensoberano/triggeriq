@@ -6,8 +6,6 @@ import Foundation
 
 @MainActor
 struct HealthKitServiceTests {
-    // Re-initialized fresh for every test since Swift Testing recreates
-    // the struct before each @Test function.
     let container: ModelContainer
     let context: ModelContext
 

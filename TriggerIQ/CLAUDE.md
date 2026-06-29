@@ -54,16 +54,24 @@ The real type conforms to the protocol via extension. The mock is a plain `final
 
 ### SwiftData models and actors
 
-Any protocol whose methods accept SwiftData `@Model` objects (e.g. `Meal`, `DailyLog`) must be marked `@MainActor` — SwiftData models are non-Sendable and cannot safely cross actor boundaries. Mark both the protocol and its implementation `@MainActor`:
+SwiftData `@Model` instances are non-Sendable and are tied to the `ModelContext` that fetched them — not to `MainActor` specifically. A `ModelContext` can live on:
+
+- **`@MainActor`** — the default in SwiftUI apps (e.g. `@Environment(\.modelContext)`)
+- **A custom background actor** — via `@ModelActor`, which Apple provides for off-main-thread persistence work
+
+**The rule:** a protocol whose methods accept SwiftData model instances must be isolated to match the actor that owns the `ModelContext` those models came from.
+
+In TriggerIQ's current UI-layer services, that's `@MainActor` because our contexts come from SwiftUI. But if a future service does background imports or batch processing, use `@ModelActor` instead — don't force everything onto the main actor.
+
+If a protocol needs to be callable across isolation boundaries, pass `PersistentIdentifier` instead of the model itself, then re-fetch in the target context:
 
 ```swift
-@MainActor
-protocol MyServiceProtocol {
-    func doSomething(with meal: Meal) async
-}
+// crossing actors — pass ID, not model
+func process(mealID: PersistentIdentifier) async throws
 
+// same actor — model is fine
 @MainActor
-final class MyService: MyServiceProtocol { ... }
+func scheduleCheckIns(for meal: Meal) async
 ```
 
 ---
