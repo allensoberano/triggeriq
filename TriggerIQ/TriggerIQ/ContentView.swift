@@ -6,7 +6,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 16) {
                 Text("TriggerIQ")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -15,8 +15,8 @@ struct ContentView: View {
                     showLogMeal = true
                 }
                 .buttonStyle(.borderedProminent)
-                .padding(.top, 24)
             }
+            .padding(.top, 24)
             .navigationTitle("Today")
         }
         .sheet(isPresented: $showLogMeal) {

@@ -1,11 +1,13 @@
 import HealthKit
 import SwiftData
 
+@MainActor
 protocol HealthKitServiceProtocol {
     func requestAuthorization() async throws
     func fetchAndCacheDaily(for date: Date, context: ModelContext) async throws
 }
 
+@MainActor
 final class HealthKitService: HealthKitServiceProtocol {
     private let store = HKHealthStore()
 

@@ -13,9 +13,25 @@ protocol NotificationCenterProtocol {
     func removePendingNotificationRequests(withIdentifiers: [String])
 }
 
-extension UNUserNotificationCenter: NotificationCenterProtocol {
+final class LiveNotificationCenter: NotificationCenterProtocol {
+    private let center = UNUserNotificationCenter.current()
+    
+    nonisolated init() {}
+
     func notificationSettings() async -> NotificationSettingsProtocol {
-        await self.notificationSettings() as UNNotificationSettings
+        await center.notificationSettings()
+    }
+
+    func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
+        try await center.requestAuthorization(options: options)
+    }
+
+    func add(_ request: UNNotificationRequest) async throws {
+        try await center.add(request)
+    }
+
+    func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
+        center.removePendingNotificationRequests(withIdentifiers: identifiers)
     }
 }
 
@@ -23,7 +39,7 @@ extension UNUserNotificationCenter: NotificationCenterProtocol {
 final class NotificationPermissionManager {
     private let center: NotificationCenterProtocol
 
-    init(center: NotificationCenterProtocol = UNUserNotificationCenter.current()) {
+    init(center: NotificationCenterProtocol = LiveNotificationCenter()) {
         self.center = center
     }
 

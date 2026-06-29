@@ -22,11 +22,11 @@ final class LogMealViewModel: ObservableObject {
     private let schedulingService: NotificationSchedulingServiceProtocol
 
     init(
-        analysisService: AnalysisServiceProtocol = resolve(),
-        schedulingService: NotificationSchedulingServiceProtocol = resolve()
+        analysisService: AnalysisServiceProtocol? = nil,
+        schedulingService: NotificationSchedulingServiceProtocol? = nil
     ) {
-        self.analysisService = analysisService
-        self.schedulingService = schedulingService
+        self.analysisService = analysisService ?? resolve()
+        self.schedulingService = schedulingService ?? resolve()
     }
 
     func analyzePhoto(_ item: PhotosPickerItem) async {
