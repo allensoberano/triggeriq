@@ -4,7 +4,7 @@ import UserNotifications
 
 @main
 struct TriggerIQApp: App {
-    @State private var pendingCheckIn: CheckInDestination?
+    @StateObject private var notificationDelegate = NotificationDelegate.shared
 
     init() {
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
@@ -37,15 +37,11 @@ struct TriggerIQApp: App {
                     await resolve(NotificationPermissionManager.self).requestPermissionIfNeeded()
                     try? await resolve(HealthKitServiceProtocol.self).requestAuthorization()
                 }
-                .sheet(item: $pendingCheckIn) { destination in
+                .sheet(item: $notificationDelegate.pendingCheckIn) { destination in
                     CheckInView(vm: CheckInViewModel(
                         checkInType: destination.checkInType,
                         mealID: destination.mealID
                     ))
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .openCheckIn)) { note in
-                    guard let destination = note.object as? CheckInDestination else { return }
-                    pendingCheckIn = destination
                 }
         }
         .modelContainer(sharedModelContainer)
@@ -60,6 +56,4 @@ struct CheckInDestination: Identifiable {
     let mealID: PersistentIdentifier?
 }
 
-extension Notification.Name {
-    static let openCheckIn = Notification.Name("openCheckIn")
-}
+extension CheckInDestination: Equatable {}

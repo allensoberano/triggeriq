@@ -15,6 +15,8 @@ protocol NotificationCenterProtocol {
 
 final class LiveNotificationCenter: NotificationCenterProtocol {
     private let center = UNUserNotificationCenter.current()
+    
+    nonisolated init() {}
 
     func notificationSettings() async -> NotificationSettingsProtocol {
         await center.notificationSettings()
