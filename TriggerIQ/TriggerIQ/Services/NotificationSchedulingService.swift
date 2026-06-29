@@ -1,11 +1,13 @@
 import UserNotifications
 
+@MainActor
 protocol NotificationSchedulingServiceProtocol {
     func scheduleCheckIns(for meal: Meal) async
     func scheduleNextMorningSummary() async
     func cancelCheckIns(for meal: Meal) async
 }
 
+@MainActor
 final class NotificationSchedulingService: NotificationSchedulingServiceProtocol {
     private let center: NotificationCenterProtocol
 
