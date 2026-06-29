@@ -201,11 +201,11 @@
 			);
 			mainGroup = 9F33DA512FF2225C002025ED;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9F0F11622FF2A1EF00BEA5C8 /* XCRemoteSwiftPackageReference "Swinject" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F33DA5B2FF2225C002025ED /* Products */;
-			packages = (
-				B4E5F6A72FF2225C002025ED /* XCRemoteSwiftPackageReference "Swinject" */,
-			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -597,6 +597,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9F0F11622FF2A1EF00BEA5C8 /* XCRemoteSwiftPackageReference "Swinject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Swinject/Swinject.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.0;
+			};
+		};
 		B4E5F6A72FF2225C002025ED /* XCRemoteSwiftPackageReference "Swinject" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Swinject/Swinject.git";

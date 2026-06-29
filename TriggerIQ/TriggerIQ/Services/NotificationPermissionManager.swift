@@ -1,11 +1,21 @@
 import UserNotifications
 
+protocol NotificationSettingsProtocol {
+    var authorizationStatus: UNAuthorizationStatus { get }
+}
+
+extension UNNotificationSettings: NotificationSettingsProtocol {}
+
 protocol NotificationCenterProtocol {
-    func notificationSettings() async -> UNNotificationSettings
+    func notificationSettings() async -> NotificationSettingsProtocol
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
 }
 
-extension UNUserNotificationCenter: NotificationCenterProtocol {}
+extension UNUserNotificationCenter: NotificationCenterProtocol {
+    func notificationSettings() async -> NotificationSettingsProtocol {
+        await self.notificationSettings() as UNNotificationSettings
+    }
+}
 
 @MainActor
 final class NotificationPermissionManager {
