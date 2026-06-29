@@ -152,3 +152,30 @@ flowchart TD
     Q --> R[LogMealSheet]
     R --> S[On dismiss → reload]
 ```
+
+---
+
+## Epic 6 — History & Meal Detail
+
+```mermaid
+flowchart TD
+    A([History Tab]) --> B[HistoryView]
+    B --> C[FetchDescriptor\nMeal sorted by timestamp desc]
+    C --> D{meals empty?}
+    D -->|yes| E[ContentUnavailableView]
+    D -->|no| F[Group by startOfDay\nDictionary grouping]
+    F --> G[List sections\nformatted date headers]
+    G --> H[NavigationLink → MealDetailView]
+
+    H --> I[MealDetailView]
+    I --> J[MealHeaderView\nphoto placeholder + time/type]
+    I --> K[ScoreBarView\npredictedScore progress bar]
+    I --> L[FlowLayout\nfood tag chips]
+    I --> M[CheckInTimeline\noneHour + fourHour rows]
+    M --> N{checkIn state}
+    N -->|completed| O[symptom summary + color dot]
+    N -->|skipped| P[Skipped label]
+    N -->|no response| Q[No response label]
+    I --> R[loadDailyLog\nfetch DailyLog for meal day]
+    R --> S[ConfounderSummaryView\nstress / alcohol / caffeine chips]
+```

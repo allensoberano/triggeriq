@@ -3,7 +3,13 @@ import SwiftData
 
 struct ContentView: View {
     var body: some View {
-        TodayView()
+        TabView {
+            TodayView()
+                .tabItem { Label("Today", systemImage: "sun.max.fill") }
+
+            HistoryView()
+                .tabItem { Label("History", systemImage: "clock.fill") }
+        }
     }
 }
 
