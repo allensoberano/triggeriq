@@ -63,9 +63,11 @@ struct TodayView: View {
                     } else {
                         ForEach(vm.todayMeals) { meal in
                             MealRow(meal: meal)
+                                .accessibilityIdentifier("mealRow-\(meal.id)")
                         }
                     }
                 }
+                .accessibilityIdentifier("todayMealsSection")
             }
             .navigationTitle("Today")
             .toolbar {
@@ -75,6 +77,7 @@ struct TodayView: View {
                     } label: {
                         Label("Log Meal", systemImage: "plus")
                     }
+                    .accessibilityIdentifier("logMealButton")
                 }
             }
             .sheet(isPresented: $showLogMeal) {

@@ -1,41 +1,121 @@
-//
-//  TriggerIQUITests.swift
-//  TriggerIQUITests
-//
-//  Created by Allen Soberano on 6/28/26.
-//
-
 import XCTest
 
 final class TriggerIQUITests: XCTestCase {
 
+    var app: XCUIApplication!
+
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+        app = XCUIApplication()
+        app.launchArguments = [
+            "--skip-onboarding",
+            "--stub-analysis",
+            "--in-memory-store"
+        ]
+        app.launch()
+        XCUIDevice.shared.orientation = .portrait
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        app = nil
     }
 
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
+    // MARK: - Launch
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testAppLaunchesToTodayTab() {
+        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 3))
     }
 
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+    // MARK: - Tab navigation
+
+    func testTabNavigationWorks() {
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.navigationBars["History"].waitForExistence(timeout: 3))
+
+        app.tabBars.buttons["Insights"].tap()
+        XCTAssertTrue(app.navigationBars["Insights"].waitForExistence(timeout: 3))
+
+        app.tabBars.buttons["Settings"].tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
+
+        app.tabBars.buttons["Today"].tap()
+        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 3))
+    }
+
+    // MARK: - Meal logging
+
+    func testLogMealSheetOpensAndCancels() {
+        app.buttons["logMealButton"].tap()
+        XCTAssertTrue(app.navigationBars["Log Meal"].waitForExistence(timeout: 3))
+
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 3))
+    }
+
+    func testLogMealViaTextFullFlow() {
+        logMealViaText("Grilled salmon with steamed broccoli")
+        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 3))
+    }
+
+    func testSavedMealAppearsInTodayList() {
+        logMealViaText("Brown rice, black beans, avocado")
+
+        XCTAssertTrue(
+            app.staticTexts["Brown rice, black beans, avocado"]
+                .waitForExistence(timeout: 3)
+        )
+    }
+
+    func testSavedMealAppearsInHistory() {
+        logMealViaText("Oatmeal with blueberries")
+
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.navigationBars["History"].waitForExistence(timeout: 3))
+
+        XCTAssertTrue(
+            app.staticTexts["Oatmeal with blueberries"]
+                .waitForExistence(timeout: 3)
+        )
+    }
+
+    // MARK: - Helpers
+
+    /// Finds the meal description input regardless of how SwiftUI renders it.
+    private func findMealDescriptionField() -> XCUIElement {
+        let placeholder = "e.g. grilled salmon, roasted vegetables, brown rice"
+        // Try textView first (axis: .vertical TextField on iOS 16+)
+        let asTextView = app.textViews[placeholder]
+        if asTextView.waitForExistence(timeout: 2) { return asTextView }
+        // Fall back to textField
+        return app.textFields[placeholder]
+    }
+
+    private func logMealViaText(_ description: String) {
+        app.buttons["logMealButton"].tap()
+        _ = app.navigationBars["Log Meal"].waitForExistence(timeout: 3)
+
+        // Swipe up to reveal the text entry section below the option buttons
+        app.swipeUp()
+
+        let textField = findMealDescriptionField()
+        _ = textField.waitForExistence(timeout: 3)
+        textField.tap()
+        textField.typeText(description)
+
+        // Dismiss the keyboard before tapping Analyze
+        app.navigationBars["Log Meal"].tap()
+
+        let analyzeButton = app.buttons["analyzeButton"]
+        _ = analyzeButton.waitForExistence(timeout: 3)
+        analyzeButton.tap()
+
+        _ = app.navigationBars["Confirm Meal"].waitForExistence(timeout: 5)
+
+        // Save button is at the bottom of the confirm list — scroll to it
+        let saveButton = app.buttons["saveMealButton"]
+        if !saveButton.isHittable { app.swipeUp() }
+        saveButton.tap()
+
+        _ = app.navigationBars["Today"].waitForExistence(timeout: 5)
     }
 }

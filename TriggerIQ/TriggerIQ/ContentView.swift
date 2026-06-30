@@ -7,7 +7,8 @@ struct RootView: View {
     @Query private var profiles: [UserProfile]
 
     private var showOnboarding: Bool {
-        !(profiles.first?.onboardingCompleted ?? false)
+        guard !CommandLine.arguments.contains("--skip-onboarding") else { return false }
+        return !(profiles.first?.onboardingCompleted ?? false)
     }
 
     var body: some View {

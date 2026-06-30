@@ -30,8 +30,14 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:TriggerIQ_NoUITests.xctestplan"
+            reference = "container:TriggerIQTests/TriggerIQ.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UnitTests.xctestplan"
             default = "YES">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:AllTests.xctestplan">
          </TestPlanReference>
       </TestPlans>
       <Testables>

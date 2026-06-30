@@ -1,24 +1,18 @@
 {
   "configurations" : [
     {
-      "id" : "B960600B-D146-4A66-8DFB-C86D8151A8A6",
-      "name" : "Test Scheme Action",
+      "id" : "B725433F-4BC7-410C-9841-286C81FB92C3",
+      "name" : "Configuration 1",
       "options" : {
 
       }
     }
   ],
   "defaultOptions" : {
-    "performanceAntipatternCheckerEnabled" : true,
-    "targetForVariableExpansion" : {
-      "containerPath" : "container:TriggerIQ.xcodeproj",
-      "identifier" : "9F33DA592FF2225C002025ED",
-      "name" : "TriggerIQ"
-    }
+    "testTimeoutsEnabled" : true
   },
   "testTargets" : [
     {
-      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:TriggerIQ.xcodeproj",
         "identifier" : "9F33DA682FF2225D002025ED",
@@ -26,8 +20,6 @@
       }
     },
     {
-      "enabled" : false,
-      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:TriggerIQ.xcodeproj",
         "identifier" : "9F33DA722FF2225D002025ED",

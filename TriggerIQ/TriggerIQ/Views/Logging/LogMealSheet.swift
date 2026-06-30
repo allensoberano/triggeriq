@@ -100,6 +100,7 @@ private struct InputMethodView: View {
                         subtitle: "Type what you ate"
                     )
                 }
+                .accessibilityIdentifier("describeMealButton")
             }
             .padding()
             .background(Color(.secondarySystemGroupedBackground))
@@ -191,6 +192,7 @@ private struct ManualTextEntry: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(vm.manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .accessibilityIdentifier("analyzeButton")
         }
     }
 }

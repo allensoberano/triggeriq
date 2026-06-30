@@ -29,7 +29,8 @@ struct TriggerIQApp: App {
             UserProfile.self,
             SuspectFoodPattern.self
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let inMemory = CommandLine.arguments.contains("--in-memory-store")
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])

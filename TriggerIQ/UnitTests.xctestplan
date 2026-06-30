@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "C3765B2E-7956-4ED7-B31F-C8E29EF09394",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:TriggerIQ.xcodeproj",
+        "identifier" : "9F33DA682FF2225D002025ED",
+        "name" : "TriggerIQTests"
+      }
+    }
+  ],
+  "version" : 1
+}
