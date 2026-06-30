@@ -74,15 +74,18 @@ flowchart TD
 flowchart TD
     A([Notification tap]) --> B[NotificationDelegate\ndidReceive response]
     B --> C[Parse identifier\ntype + mealID]
-    C --> D[Post openCheckIn\nNotification]
+    C --> D[@Published pendingCheckIn\non NotificationDelegate]
     D --> E[TriggerIQApp\npresents CheckInView sheet]
     E --> F{User action}
-    F -->|Rate symptoms| G[CheckInViewModel.save\ninserts CheckIn to SwiftData]
+    F -->|Rate symptoms| G[CheckInViewModel.save]
     F -->|Skip| H[CheckInViewModel.skip\nskipped=true, no symptom data]
     F -->|Log bowel/hydration| I[BristolHydrationView sheet]
     I --> J[Insert BowelMovementEntry\nor HydrationEntry to DailyLog]
-    G --> K([Sheet dismisses])
-    H --> K
+    G --> K[Insert CheckIn\ncompletedTime = now]
+    K --> L[voidSupersededCheckIns\ncreate skipped records for earlier types]
+    L --> M[cancelCheckIns for meal\nremove pending OS notifications]
+    M --> N([Sheet dismisses\nToday banner clears])
+    H --> N
 ```
 
 ---
