@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TipKit
 
 struct MealConfirmView: View {
     @ObservedObject var vm: LogMealViewModel
@@ -8,6 +9,8 @@ struct MealConfirmView: View {
 
     @State private var editedDescription: String
     @State private var foodTags: [ParsedFoodTag]
+    @State private var selectedTipKey: IngredientTipKey?
+    @State private var selectedReplacementTip: IngredientReplacementTip?
 
     init(vm: LogMealViewModel, result: AnalysisResult, context: ModelContext) {
         self.vm = vm
@@ -42,7 +45,34 @@ struct MealConfirmView: View {
             if !foodTags.isEmpty {
                 Section("Detected ingredients") {
                     ForEach(foodTags, id: \.rawName) { tag in
-                        FoodTagRow(tag: tag)
+                        let advice = IngredientInflammationAdvisor.advice(for: tag)
+                        if let replacementTip = advice.replacementTip {
+                            let tipKey = IngredientTipKey(tag: tag)
+                            Button {
+                                if selectedTipKey == tipKey {
+                                    selectedTipKey = nil
+                                    selectedReplacementTip = nil
+                                } else {
+                                    selectedTipKey = tipKey
+                                    selectedReplacementTip = IngredientReplacementTip(
+                                        id: tipKey.id,
+                                        ingredientName: tag.rawName.capitalized,
+                                        detailMessage: replacementTip
+                                    )
+                                }
+                            } label: {
+                                FoodTagRow(tag: tag, advice: advice)
+                            }
+                            .buttonStyle(.plain)
+                            .popoverTip(
+                                selectedTipKey == tipKey
+                                ? selectedReplacementTip
+                                : nil,
+                                arrowEdge: .top
+                            )
+                        } else {
+                            FoodTagRow(tag: tag, advice: advice)
+                        }
                     }
                     .onDelete { indices in
                         foodTags.remove(atOffsets: indices)
@@ -118,6 +148,20 @@ private struct ScoreRow: View {
 
 private struct FoodTagRow: View {
     let tag: ParsedFoodTag
+    let advice: IngredientInflammationAdvice
+
+    init(tag: ParsedFoodTag, advice: IngredientInflammationAdvice? = nil) {
+        self.tag = tag
+        self.advice = advice ?? IngredientInflammationAdvisor.advice(for: tag)
+    }
+
+    private var levelColor: Color {
+        switch advice.level {
+        case .low: return .green
+        case .moderate: return .orange
+        case .high: return .red
+        }
+    }
 
     var body: some View {
         HStack {
@@ -133,10 +177,52 @@ private struct FoodTagRow: View {
             Spacer()
             Text(tag.canonicalTag)
                 .font(.caption)
+                .foregroundStyle(levelColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color(.tertiarySystemFill))
+                .background(levelColor.opacity(0.14))
                 .clipShape(Capsule())
+            if advice.replacementTip != nil {
+                Image(systemName: "lightbulb")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
+    }
+}
+
+private struct IngredientTipKey: Equatable {
+    let rawName: String
+    let canonicalTag: String
+    let category: String?
+
+    init(tag: ParsedFoodTag) {
+        self.rawName = tag.rawName
+        self.canonicalTag = tag.canonicalTag
+        self.category = tag.category
+    }
+
+    var id: String {
+        [rawName, canonicalTag, category ?? ""]
+            .map { Data($0.lowercased().utf8).base64EncodedString() }
+            .joined(separator: ":")
+    }
+}
+
+private struct IngredientReplacementTip: Tip {
+    let id: String
+    let ingredientName: String
+    let detailMessage: String
+
+    var title: Text {
+        Text("\(ingredientName) replacement tip")
+    }
+
+    var message: Text? {
+        Text(detailMessage)
+    }
+
+    var image: Image? {
+        Image(systemName: "lightbulb")
     }
 }

@@ -1,12 +1,15 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import TipKit
 
 struct MealDetailView: View {
     let meal: Meal
     @Environment(\.modelContext) private var context
     @State private var dailyLog: DailyLog?
     @State private var mealPhoto: UIImage?
+    @State private var selectedTipKey: HistoryIngredientTipKey?
+    @State private var selectedReplacementTip: HistoryIngredientReplacementTip?
 
     private var photoStorage: PhotoStorageServiceProtocol { resolve() }
 
@@ -38,7 +41,11 @@ struct MealDetailView: View {
             // MARK: - Food Tags
             if !meal.foodTags.isEmpty {
                 Section("Ingredients") {
-                    FlowLayout(tags: meal.foodTags)
+                    FlowLayout(
+                        tags: meal.foodTags,
+                        selectedTipKey: $selectedTipKey,
+                        selectedReplacementTip: $selectedReplacementTip
+                    )
                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
             }
@@ -182,23 +189,139 @@ private struct ScoreBarView: View {
 // MARK: - Food Tag Flow Layout
 
 private struct FlowLayout: View {
-    let tags: [FoodTag]
+    private struct HistoryIngredientItem: Identifiable {
+        let id: UUID
+        let tag: FoodTag
+        let advice: IngredientInflammationAdvice
+    }
+
+    private let items: [HistoryIngredientItem]
+    @Binding var selectedTipKey: HistoryIngredientTipKey?
+    @Binding var selectedReplacementTip: HistoryIngredientReplacementTip?
+
+    init(
+        tags: [FoodTag],
+        selectedTipKey: Binding<HistoryIngredientTipKey?>,
+        selectedReplacementTip: Binding<HistoryIngredientReplacementTip?>
+    ) {
+        self.items = tags.map { tag in
+            let parsedTag = ParsedFoodTag(
+                rawName: tag.rawName,
+                canonicalTag: tag.canonicalTag,
+                category: tag.category
+            )
+            let advice = IngredientInflammationAdvisor.advice(for: parsedTag)
+            return HistoryIngredientItem(id: tag.id, tag: tag, advice: advice)
+        }
+        self._selectedTipKey = selectedTipKey
+        self._selectedReplacementTip = selectedReplacementTip
+    }
 
     var body: some View {
         LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 80))],
+            columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)],
             alignment: .leading,
             spacing: 8
         ) {
-            ForEach(tags) { tag in
-                Text(tag.rawName.capitalized)
-                    .font(.caption)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color(.tertiarySystemFill))
-                    .clipShape(Capsule())
+            ForEach(items) { item in
+                if let replacementTip = item.advice.replacementTip {
+                    let tipKey = HistoryIngredientTipKey(tagID: item.id)
+                    Button {
+                        if selectedTipKey == tipKey {
+                            selectedTipKey = nil
+                            selectedReplacementTip = nil
+                        } else {
+                            selectedTipKey = tipKey
+                            selectedReplacementTip = HistoryIngredientReplacementTip(
+                                id: tipKey.id,
+                                ingredientName: item.tag.rawName.capitalized,
+                                detailMessage: replacementTip
+                            )
+                        }
+                    } label: {
+                        IngredientChip(tag: item.tag, advice: item.advice, showsTipIndicator: true)
+                    }
+                    .buttonStyle(.plain)
+                    .popoverTip(
+                        selectedTipKey == tipKey
+                        ? selectedReplacementTip
+                        : nil,
+                        arrowEdge: .top
+                    )
+                } else {
+                    IngredientChip(tag: item.tag, advice: item.advice)
+                }
             }
         }
+    }
+}
+
+private struct IngredientChip: View {
+    let tag: FoodTag
+    let advice: IngredientInflammationAdvice
+    var showsTipIndicator: Bool = false
+
+    private var levelColor: Color {
+        switch advice.level {
+        case .low: return .green
+        case .moderate: return .orange
+        case .high: return .red
+        }
+    }
+
+    private var levelSymbol: String {
+        switch advice.level {
+        case .low: return "checkmark.circle.fill"
+        case .moderate: return "exclamationmark.circle.fill"
+        case .high: return "flame.fill"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: levelSymbol)
+                .font(.caption2)
+            Text(tag.rawName.capitalized)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+            if showsTipIndicator {
+                Image(systemName: "lightbulb")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(levelColor)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(levelColor.opacity(0.14))
+        .clipShape(Capsule())
+    }
+}
+
+private struct HistoryIngredientTipKey: Equatable {
+    let id: String
+
+    init(tagID: UUID) {
+        self.id = tagID.uuidString
+    }
+}
+
+private struct HistoryIngredientReplacementTip: Tip {
+    let id: String
+    let ingredientName: String
+    let detailMessage: String
+
+    var title: Text {
+        Text("Replacement tip")
+    }
+
+    var message: Text? {
+        Text(detailMessage)
+    }
+
+    var image: Image? {
+        Image(systemName: "lightbulb")
     }
 }
 
