@@ -210,6 +210,63 @@ flowchart LR
 
 ---
 
+## Epic 7 — Insights Screen
+
+```mermaid
+flowchart TD
+    A([Insights Tab]) --> B[InsightsView]
+    B --> C[InsightsViewModel.load]
+    C --> D[Fetch all Meals\nsorted chronologically]
+    C --> E[Fetch SuspectFoodPatterns\nsorted by avgSymptomSeverity desc]
+    D --> F[ScorePoint array\ndate + predictedScore + mealType]
+    F --> G[ScoreTrendChart\nSwift Charts line + scatter\nbaseline rule mark]
+    E --> H{patterns empty?}
+    H -->|yes| I[PatternsInsufficientDataView]
+    H -->|no| J[FoodPatternRow list\ntop 10 patterns]
+    J --> K[Severity bar vs baseline\nconfidence badge\nsampleSize label]
+
+    B --> L[Refresh toolbar button]
+    L --> M[InsightsViewModel\nrecomputePatterns]
+    M --> N[PatternEngine.recompute\nTask.detached userInitiated]
+    N --> O[Group completed check-ins\nby canonicalTag]
+    O --> P[Upsert SuspectFoodPattern rows\navgSymptomSeverity\nbaselineSeverity\nconfidence]
+    P --> Q[context.save]
+    Q --> R[reload on MainActor]
+```
+
+---
+
+## Epic 7 — Pattern Engine Logic
+
+```mermaid
+flowchart TD
+    A([PatternEngine.recompute]) --> B[Fetch all Meals + CheckIns]
+    B --> C[Filter: completedTime != nil\nand skipped == false]
+    C --> D[Compute baseline\navg maxSeverity across all check-ins]
+    D --> E[For each Meal\nfind matching completed check-ins]
+    E --> F[Avg maxSeverity per meal]
+    F --> G[Group by canonicalTag\nbuild tagSeverities dict]
+    G --> H[Upsert SuspectFoodPattern\nper canonical tag]
+    H --> I{sampleSize}
+    I -->|<5| J[confidence: low]
+    I -->|5–9| K[confidence: emerging]
+    I -->|10+| L[confidence: strong]
+    G --> M[Delete patterns\nfor tags no longer present]
+```
+
+---
+
+## DI — Assembly & Resolution (Epic 7)
+
+```mermaid
+flowchart LR
+    AC[AppContainer\nAssembler] --> PE[PatternEngine\nAssembly]
+    PE --> PEP[PatternEngine\nPatternEngineProtocol]
+    IV[InsightsViewModel] --> PEP
+```
+
+---
+
 ## Epic 6 — History & Meal Detail
 
 ```mermaid
