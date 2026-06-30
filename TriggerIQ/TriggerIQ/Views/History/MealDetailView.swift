@@ -1,16 +1,20 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct MealDetailView: View {
     let meal: Meal
     @Environment(\.modelContext) private var context
     @State private var dailyLog: DailyLog?
+    @State private var mealPhoto: UIImage?
+
+    private var photoStorage: PhotoStorageServiceProtocol { resolve() }
 
     var body: some View {
         List {
             // MARK: - Photo / Header
             Section {
-                MealHeaderView(meal: meal)
+                MealHeaderView(meal: meal, photo: mealPhoto)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
             }
@@ -61,7 +65,10 @@ struct MealDetailView: View {
         }
         .navigationTitle(meal.mealType.rawValue.capitalized)
         .navigationBarTitleDisplayMode(.inline)
-        .task { loadDailyLog() }
+        .task {
+            loadDailyLog()
+            loadPhoto()
+        }
     }
 
     private func loadDailyLog() {
@@ -71,12 +78,18 @@ struct MealDetailView: View {
         )
         dailyLog = try? context.fetch(descriptor).first
     }
+
+    private func loadPhoto() {
+        guard let fileName = meal.photoFileName else { return }
+        mealPhoto = photoStorage.load(fileName: fileName)
+    }
 }
 
 // MARK: - Meal Header
 
 private struct MealHeaderView: View {
     let meal: Meal
+    let photo: UIImage?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -85,13 +98,21 @@ private struct MealHeaderView: View {
                     .fill(Color(.secondarySystemGroupedBackground))
                     .frame(height: 200)
 
-                VStack(spacing: 8) {
-                    Image(systemName: "fork.knife.circle")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.tertiary)
-                    Text(meal.photoDeleted ? "Photo deleted" : "No photo")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+                if let photo {
+                    Image(uiImage: photo)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 200)
+                        .clipped()
+                } else {
+                    VStack(spacing: 8) {
+                        Image(systemName: "fork.knife.circle")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.tertiary)
+                        Text(meal.photoDeleted ? "Photo deleted" : "No photo")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
             }
 
@@ -280,13 +301,15 @@ private struct ConfounderSummaryView: View {
     let log: DailyLog
 
     var body: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: 16) {
             ConfounderChip(icon: "brain.head.profile", label: "Stress",
                            value: log.stressLevel, max: 3)
             ConfounderChip(icon: "wineglass", label: "Alcohol",
                            value: log.alcoholDrinks, max: nil)
             ConfounderChip(icon: "cup.and.saucer.fill", label: "Caffeine",
                            value: log.caffeineDrinks, max: nil)
+            ConfounderChip(icon: "drop.fill", label: "Water",
+                           value: log.waterGlasses, max: nil)
         }
     }
 }

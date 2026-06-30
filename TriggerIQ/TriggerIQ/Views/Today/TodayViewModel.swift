@@ -10,6 +10,7 @@ final class TodayViewModel: ObservableObject {
     @Published var stress: Int = 0
     @Published var alcoholDrinks: Int = 0
     @Published var caffeineDrinks: Int = 0
+    @Published var waterGlasses: Int = 0
 
     private let healthKitService: HealthKitServiceProtocol
 
@@ -35,6 +36,7 @@ final class TodayViewModel: ObservableObject {
             stress = log.stressLevel ?? 0
             alcoholDrinks = log.alcoholDrinks ?? 0
             caffeineDrinks = log.caffeineDrinks ?? 0
+            waterGlasses = log.waterGlasses ?? 0
         } else {
             let log = DailyLog(date: today)
             context.insert(log)
@@ -48,6 +50,7 @@ final class TodayViewModel: ObservableObject {
         log.stressLevel = stress
         log.alcoholDrinks = alcoholDrinks
         log.caffeineDrinks = caffeineDrinks
+        log.waterGlasses = waterGlasses
         try? context.save()
     }
 

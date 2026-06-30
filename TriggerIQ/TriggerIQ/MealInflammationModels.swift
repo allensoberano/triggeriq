@@ -121,6 +121,7 @@ final class DailyLog {
     var stressLevel: Int?      // 0–3
     var alcoholDrinks: Int?
     var caffeineDrinks: Int?
+    var waterGlasses: Int?     // 8oz glasses
 
     // Cached HealthKit snapshot
     var sleepDuration: TimeInterval?

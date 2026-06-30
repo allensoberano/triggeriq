@@ -38,6 +38,12 @@ struct TodayView: View {
                         value: $vm.caffeineDrinks,
                         max: 10
                     )
+                    ConfounderRow(
+                        icon: "drop.fill",
+                        label: "Water (8oz)",
+                        value: $vm.waterGlasses,
+                        max: 20
+                    )
                 }
 
                 Section("Today's meals") {
@@ -81,6 +87,7 @@ struct TodayView: View {
             .onChange(of: vm.stress) { _, _ in vm.saveConfounders(context: context) }
             .onChange(of: vm.alcoholDrinks) { _, _ in vm.saveConfounders(context: context) }
             .onChange(of: vm.caffeineDrinks) { _, _ in vm.saveConfounders(context: context) }
+            .onChange(of: vm.waterGlasses) { _, _ in vm.saveConfounders(context: context) }
         }
     }
 }

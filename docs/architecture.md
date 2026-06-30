@@ -74,15 +74,18 @@ flowchart TD
 flowchart TD
     A([Notification tap]) --> B[NotificationDelegate\ndidReceive response]
     B --> C[Parse identifier\ntype + mealID]
-    C --> D[Post openCheckIn\nNotification]
+    C --> D[@Published pendingCheckIn\non NotificationDelegate]
     D --> E[TriggerIQApp\npresents CheckInView sheet]
     E --> F{User action}
-    F -->|Rate symptoms| G[CheckInViewModel.save\ninserts CheckIn to SwiftData]
+    F -->|Rate symptoms| G[CheckInViewModel.save]
     F -->|Skip| H[CheckInViewModel.skip\nskipped=true, no symptom data]
     F -->|Log bowel/hydration| I[BristolHydrationView sheet]
     I --> J[Insert BowelMovementEntry\nor HydrationEntry to DailyLog]
-    G --> K([Sheet dismisses])
-    H --> K
+    G --> K[Insert CheckIn\ncompletedTime = now]
+    K --> L[voidSupersededCheckIns\ncreate skipped records for earlier types]
+    L --> M[cancelCheckIns for meal\nremove pending OS notifications]
+    M --> N([Sheet dismisses\nToday banner clears])
+    H --> N
 ```
 
 ---
@@ -151,6 +154,58 @@ flowchart TD
     B --> Q[Log Meal + button]
     Q --> R[LogMealSheet]
     R --> S[On dismiss → reload]
+```
+
+---
+
+## Epic 7a — AI Analysis (Claude API)
+
+```mermaid
+flowchart TD
+    A([Meal input]) --> B{Input type}
+    B -->|Camera| C[CameraView\nUIImagePickerController]
+    B -->|Library| D[PhotosPicker\nloadTransferable]
+    B -->|Text| E[Manual text entry]
+
+    C --> F[Convert HEIC → JPEG\n0.8 compression]
+    D --> F
+    F --> G[LiveAnalysisService\nanalyze imageData]
+    E --> H[LiveAnalysisService\nanalyze text]
+
+    G --> I[AnthropicClient\nPOST /v1/messages\nClaude Haiku]
+    H --> I
+    I --> J{API key?}
+    J -->|Keychain| K[LiveAnalysisService]
+    J -->|Secrets.plist| K
+    J -->|missing| L[StubAnalysisService\nfallback]
+
+    K --> M[Strip markdown fences\nparse JSON response]
+    M --> N[AnalysisResult\ndescription + score + tags]
+    L --> N
+
+    N --> O[MealConfirmView]
+    O -->|Save| P[PhotoStorageService\nsave JPEG to app sandbox]
+    P --> Q[meal.photoFileName set\nphotoExpiryDate = +14 days]
+    Q --> R[Meal inserted to SwiftData]
+
+    S([App launch]) --> T[ContentView.task\npurgeExpired]
+    T --> U{meal.photoExpiryDate\n<= now?}
+    U -->|yes| V[Delete file from sandbox\nphotoDeleted = true\nphotoFileName = nil]
+    U -->|no| W[Keep photo]
+```
+
+---
+
+## Epic 7a — DI Assembly
+
+```mermaid
+flowchart LR
+    AC[AppContainer\nAssembler] --> AA[AnalysisService\nAssembly]
+    AC --> PA[PhotoStorage\nAssembly]
+    AA --> LA[LiveAnalysisService\nif API key present]
+    AA --> SA[StubAnalysisService\nfallback]
+    LA --> AC2[AnthropicClient\nURLSession]
+    PA --> PS[PhotoStorageService\napp sandbox]
 ```
 
 ---

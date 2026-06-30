@@ -35,9 +35,9 @@ final class NotificationSchedulingService: NotificationSchedulingServiceProtocol
         await scheduleCheckIn(
             identifier: checkInID(meal: meal, type: .fourHour),
             title: "Check in time",
-            body: "4 hours since your meal — any bloating, fatigue, or joint pain?",
+            body: "3 hours since your meal — any bloating, fatigue, or joint pain?",
             at: meal.timestamp.addingTimeInterval(20)              // DEBUG: 20 seconds
-            // at: meal.timestamp.addingTimeInterval(4 * 60 * 60) // PRODUCTION: 4 hours
+            // at: meal.timestamp.addingTimeInterval(3 * 60 * 60) // PRODUCTION: 3 hours
         )
     }
 

@@ -24,6 +24,9 @@ struct HistoryView: View {
                                         MealRow(meal: meal)
                                     }
                                 }
+                                .onDelete { indexSet in
+                                    deleteMeals(from: group.meals, at: indexSet)
+                                }
                             }
                         }
                     }
@@ -32,6 +35,19 @@ struct HistoryView: View {
             .navigationTitle("History")
             .task { loadMeals() }
         }
+    }
+
+    private func deleteMeals(from group: [Meal], at indexSet: IndexSet) {
+        let photoStorage = resolve(PhotoStorageServiceProtocol.self)
+        for index in indexSet {
+            let meal = group[index]
+            if let fileName = meal.photoFileName {
+                photoStorage.delete(fileName: fileName)
+            }
+            context.delete(meal)
+        }
+        try? context.save()
+        loadMeals()
     }
 
     private func loadMeals() {

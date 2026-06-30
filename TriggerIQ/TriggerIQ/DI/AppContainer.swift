@@ -12,6 +12,7 @@ final class AppContainer {
             NotificationServiceAssembly(),
             HealthKitServiceAssembly(),
             AnalysisServiceAssembly(),
+            PhotoStorageAssembly(),
         ])
     }
 }

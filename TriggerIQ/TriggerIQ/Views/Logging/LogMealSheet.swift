@@ -1,12 +1,14 @@
 import SwiftUI
 import PhotosUI
 import SwiftData
+import UIKit
 
 struct LogMealSheet: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var vm = LogMealViewModel()
+    @State private var showCamera = false
 
     var body: some View {
         NavigationStack {
@@ -18,6 +20,21 @@ struct LogMealSheet: View {
                         Button("Cancel") { dismiss() }
                     }
                 }
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraView { image in
+                guard let jpeg = image.jpegData(compressionQuality: 0.8) else { return }
+                vm.capturedPhotoData = jpeg
+                showCamera = false
+            }
+            .ignoresSafeArea()
+        }
+        .onChange(of: showCamera) { _, isShowing in
+            // Trigger analysis after camera sheet fully dismisses
+            if !isShowing, let jpeg = vm.capturedPhotoData {
+                vm.capturedPhotoData = nil
+                Task { await vm.analyzeCapturedPhoto(jpeg) }
+            }
         }
         .onChange(of: vm.selectedPhotoItem) { _, item in
             guard let item else { return }
@@ -32,7 +49,7 @@ struct LogMealSheet: View {
     private var content: some View {
         switch vm.step {
         case .inputMethod:
-            InputMethodView(vm: vm)
+            InputMethodView(vm: vm, onCamera: { showCamera = true })
         case .analyzing:
             AnalyzingView()
         case .confirm(let result):
@@ -47,17 +64,28 @@ struct LogMealSheet: View {
 
 private struct InputMethodView: View {
     @ObservedObject var vm: LogMealViewModel
+    let onCamera: () -> Void
 
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
 
             VStack(spacing: 16) {
-                PhotosPicker(selection: $vm.selectedPhotoItem, matching: .images) {
+                Button(action: onCamera) {
                     InputOptionRow(
                         icon: "camera.fill",
-                        title: "Take or choose a photo",
-                        subtitle: "AI will identify your meal"
+                        title: "Take a photo",
+                        subtitle: "Use your camera to capture the meal"
+                    )
+                }
+
+                Divider().padding(.horizontal)
+
+                PhotosPicker(selection: $vm.selectedPhotoItem, matching: .images) {
+                    InputOptionRow(
+                        icon: "photo.on.rectangle",
+                        title: "Choose from library",
+                        subtitle: "Pick an existing photo"
                     )
                 }
 
