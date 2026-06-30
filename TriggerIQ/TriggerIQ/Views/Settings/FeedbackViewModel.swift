@@ -1,12 +1,39 @@
 import SwiftUI
 import Combine
 
+// MARK: - Rate-limit store
+
+protocol FeedbackRateLimitStore {
+    func load() -> [Double]
+    func save(_ timestamps: [Double])
+}
+
+final class UserDefaultsRateLimitStore: FeedbackRateLimitStore {
+    private let key = "feedbackSubmissions"
+
+    func load() -> [Double] {
+        UserDefaults.standard.array(forKey: key) as? [Double] ?? []
+    }
+
+    func save(_ timestamps: [Double]) {
+        UserDefaults.standard.set(timestamps, forKey: key)
+    }
+}
+
+final class InMemoryRateLimitStore: FeedbackRateLimitStore {
+    private var timestamps: [Double] = []
+    func load() -> [Double] { timestamps }
+    func save(_ timestamps: [Double]) { self.timestamps = timestamps }
+}
+
+// MARK: - ViewModel
+
 @MainActor
 final class FeedbackViewModel: ObservableObject {
     static let maxTitleLength = 100
     static let maxBodyLength  = 1000
     static let rateLimit      = 3
-    static let rateLimitWindow: TimeInterval = 3600 // 1 hour
+    static let rateLimitWindow: TimeInterval = 3600
 
     @Published var feedbackType: FeedbackType = .suggestion
     @Published var title: String = ""
@@ -27,15 +54,17 @@ final class FeedbackViewModel: ObservableObject {
     }
 
     private let service: GitHubIssueServiceProtocol
-    private let defaults: UserDefaults
+    private let rateLimitStore: FeedbackRateLimitStore
 
-    init(service: GitHubIssueServiceProtocol? = nil, defaults: UserDefaults = .standard) {
-        self.service  = service ?? GitHubIssueService()
-        self.defaults = defaults
+    init(service: GitHubIssueServiceProtocol? = nil,
+         rateLimitStore: FeedbackRateLimitStore = UserDefaultsRateLimitStore()) {
+        self.service = service ?? GitHubIssueService()
+        self.rateLimitStore = rateLimitStore
     }
 
     func submit() async {
         guard canSubmit else { return }
+        submitted = false
 
         if isRateLimited {
             errorMessage = "You've submitted 3 suggestions in the last hour. Please try again later."
@@ -62,13 +91,14 @@ final class FeedbackViewModel: ObservableObject {
 
     private func recentSubmissions() -> [Date] {
         let cutoff = Date().addingTimeInterval(-Self.rateLimitWindow)
-        let stored = defaults.array(forKey: "feedbackSubmissions") as? [Double] ?? []
-        return stored.map { Date(timeIntervalSince1970: $0) }.filter { $0 > cutoff }
+        return rateLimitStore.load()
+            .map { Date(timeIntervalSince1970: $0) }
+            .filter { $0 > cutoff }
     }
 
     private func recordSubmission() {
-        var recent = recentSubmissions().map(\.timeIntervalSince1970)
-        recent.append(Date().timeIntervalSince1970)
-        defaults.set(recent, forKey: "feedbackSubmissions")
+        var timestamps = recentSubmissions().map(\.timeIntervalSince1970)
+        timestamps.append(Date().timeIntervalSince1970)
+        rateLimitStore.save(timestamps)
     }
 }

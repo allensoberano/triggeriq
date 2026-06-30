@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9F33DC792FF47042002025ED /* UnitTests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 9F33DC782FF47042002025ED /* UnitTests.xctestplan */; };
+		9F33DC7B2FF4708E002025ED /* AllTests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 9F33DC7A2FF4708E002025ED /* AllTests.xctestplan */; };
 		B4E5F6A92FF2225C002025ED /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = B4E5F6A82FF2225C002025ED /* Swinject */; };
 /* End PBXBuildFile section */
 
@@ -31,7 +33,9 @@
 		9F33DA5A2FF2225C002025ED /* TriggerIQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TriggerIQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F33DA692FF2225D002025ED /* TriggerIQTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TriggerIQTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F33DA732FF2225D002025ED /* TriggerIQUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TriggerIQUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9F33DB8A2FF2D9EF002025ED /* TriggerIQ_NoUITests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TriggerIQ_NoUITests.xctestplan; sourceTree = "<group>"; };
+		9F33DC742FF46D2B002025ED /* TriggerIQUITests */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TriggerIQUITests; sourceTree = "<group>"; };
+		9F33DC782FF47042002025ED /* UnitTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = UnitTests.xctestplan; sourceTree = "<group>"; };
+		9F33DC7A2FF4708E002025ED /* AllTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = AllTests.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -81,7 +85,9 @@
 		9F33DA512FF2225C002025ED = {
 			isa = PBXGroup;
 			children = (
-				9F33DB8A2FF2D9EF002025ED /* TriggerIQ_NoUITests.xctestplan */,
+				9F33DC7A2FF4708E002025ED /* AllTests.xctestplan */,
+				9F33DC782FF47042002025ED /* UnitTests.xctestplan */,
+				9F33DC742FF46D2B002025ED /* TriggerIQUITests */,
 				9F33DA5C2FF2225C002025ED /* TriggerIQ */,
 				9F33DA6C2FF2225D002025ED /* TriggerIQTests */,
 				9F33DA762FF2225D002025ED /* TriggerIQUITests */,
@@ -223,6 +229,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F33DC792FF47042002025ED /* UnitTests.xctestplan in Resources */,
+				9F33DC7B2FF4708E002025ED /* AllTests.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

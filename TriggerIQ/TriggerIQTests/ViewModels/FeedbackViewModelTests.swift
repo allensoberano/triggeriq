@@ -5,18 +5,12 @@ import Foundation
 @MainActor
 struct FeedbackViewModelTests {
 
-    private func makeVM(error: Error? = nil) -> (FeedbackViewModel, MockGitHubIssueService) {
+    private func makeVM(error: Error? = nil,
+                        store: FeedbackRateLimitStore = InMemoryRateLimitStore()) -> (FeedbackViewModel, MockGitHubIssueService) {
         let mock = MockGitHubIssueService()
         mock.errorToThrow = error
-        let vm = FeedbackViewModel(service: mock, defaults: makeIsolatedDefaults())
+        let vm = FeedbackViewModel(service: mock, rateLimitStore: store)
         return (vm, mock)
-    }
-
-    private func makeIsolatedDefaults() -> UserDefaults {
-        let suiteName = "FeedbackViewModelTests.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        return defaults
     }
 
     // MARK: - canSubmit
@@ -108,7 +102,7 @@ struct FeedbackViewModelTests {
 
     @Test func submitClearsErrorOnRetry() async {
         let mock = MockGitHubIssueService()
-        let vm = FeedbackViewModel(service: mock, defaults: makeIsolatedDefaults())
+        let vm = FeedbackViewModel(service: mock, rateLimitStore: InMemoryRateLimitStore())
         vm.title = "Title"
         vm.body = "Body"
 
@@ -130,9 +124,9 @@ struct FeedbackViewModelTests {
     // MARK: - rate limiting
 
     @Test func allowsUpToThreeSubmissionsPerHour() async {
-        let defaults = makeIsolatedDefaults()
+        let store = InMemoryRateLimitStore()
         let mock = MockGitHubIssueService()
-        let vm = FeedbackViewModel(service: mock, defaults: defaults)
+        let vm = FeedbackViewModel(service: mock, rateLimitStore: store)
 
         for i in 1...3 {
             vm.title = "Title \(i)"
@@ -144,9 +138,9 @@ struct FeedbackViewModelTests {
     }
 
     @Test func blocksFourthSubmissionWithinHour() async {
-        let defaults = makeIsolatedDefaults()
+        let store = InMemoryRateLimitStore()
         let mock = MockGitHubIssueService()
-        let vm = FeedbackViewModel(service: mock, defaults: defaults)
+        let vm = FeedbackViewModel(service: mock, rateLimitStore: store)
 
         for i in 1...3 {
             vm.title = "Title \(i)"
@@ -164,10 +158,10 @@ struct FeedbackViewModelTests {
     }
 
     @Test func rateLimitDoesNotCountFailedSubmissions() async {
-        let defaults = makeIsolatedDefaults()
+        let store = InMemoryRateLimitStore()
         let mock = MockGitHubIssueService()
         mock.errorToThrow = GitHubIssueError.httpError(500)
-        let vm = FeedbackViewModel(service: mock, defaults: defaults)
+        let vm = FeedbackViewModel(service: mock, rateLimitStore: store)
 
         for i in 1...3 {
             vm.title = "Title \(i)"
@@ -176,7 +170,6 @@ struct FeedbackViewModelTests {
             #expect(vm.submitted == false)
         }
 
-        // failures shouldn't consume the rate limit budget
         mock.errorToThrow = nil
         vm.title = "Should succeed"
         vm.body = "Body"
@@ -185,16 +178,17 @@ struct FeedbackViewModelTests {
     }
 
     @Test func oldSubmissionsOutsideWindowDoNotCountTowardLimit() async {
-        let defaults = makeIsolatedDefaults()
+        let store = InMemoryRateLimitStore()
+        // Pre-seed with 3 stale timestamps (older than 1 hour)
         let staleTimestamps = [
             Date().addingTimeInterval(-7200).timeIntervalSince1970,
             Date().addingTimeInterval(-7100).timeIntervalSince1970,
             Date().addingTimeInterval(-7000).timeIntervalSince1970
         ]
-        defaults.set(staleTimestamps, forKey: "feedbackSubmissions")
+        store.save(staleTimestamps)
 
         let mock = MockGitHubIssueService()
-        let vm = FeedbackViewModel(service: mock, defaults: defaults)
+        let vm = FeedbackViewModel(service: mock, rateLimitStore: store)
         vm.title = "Title"
         vm.body = "Body"
         await vm.submit()
