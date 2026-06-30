@@ -32,11 +32,7 @@ struct TriggerIQApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .task {
-                    await resolve(NotificationPermissionManager.self).requestPermissionIfNeeded()
-                    try? await resolve(HealthKitServiceProtocol.self).requestAuthorization()
-                }
+            RootView()
                 .sheet(item: $notificationDelegate.pendingCheckIn) { destination in
                     CheckInView(vm: CheckInViewModel(
                         checkInType: destination.checkInType,

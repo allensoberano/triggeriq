@@ -17,7 +17,7 @@ final class LogMealViewModel: ObservableObject {
     @Published var selectedPhotoItem: PhotosPickerItem?
     @Published var capturedPhotoData: Data?
     @Published var manualText: String = ""
-    @Published var mealType: MealType = .lunch
+    @Published var mealType: MealType = MealType.suggested(for: Date())
     @Published var isSaved = false
 
     private let analysisService: AnalysisServiceProtocol
