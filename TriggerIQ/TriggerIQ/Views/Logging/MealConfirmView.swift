@@ -51,6 +51,9 @@ struct MealConfirmView: View {
                             FoodTagRow(
                                 tag: tag,
                                 advice: advice,
+                                displayedReplacementTip: selectedTipKey == tipKey
+                                ? selectedReplacementTip
+                                : nil,
                                 onTipTap: {
                                     if selectedTipKey == tipKey {
                                         selectedTipKey = nil
@@ -64,12 +67,6 @@ struct MealConfirmView: View {
                                         )
                                     }
                                 }
-                            )
-                            .popoverTip(
-                                selectedTipKey == tipKey
-                                ? selectedReplacementTip
-                                : nil,
-                                arrowEdge: .top
                             )
                         } else {
                             FoodTagRow(tag: tag, advice: advice)
@@ -150,11 +147,18 @@ private struct ScoreRow: View {
 private struct FoodTagRow: View {
     let tag: ParsedFoodTag
     let advice: IngredientInflammationAdvice
+    let displayedReplacementTip: IngredientReplacementTip?
     let onTipTap: (() -> Void)?
 
-    init(tag: ParsedFoodTag, advice: IngredientInflammationAdvice? = nil, onTipTap: (() -> Void)? = nil) {
+    init(
+        tag: ParsedFoodTag,
+        advice: IngredientInflammationAdvice? = nil,
+        displayedReplacementTip: IngredientReplacementTip? = nil,
+        onTipTap: (() -> Void)? = nil
+    ) {
         self.tag = tag
         self.advice = advice ?? IngredientInflammationAdvisor.advice(for: tag)
+        self.displayedReplacementTip = displayedReplacementTip
         self.onTipTap = onTipTap
     }
 
@@ -179,16 +183,26 @@ private struct FoodTagRow: View {
             }
             Spacer()
             if advice.replacementTip != nil, let onTipTap {
-                Button(action: onTipTap) {
-                    HStack(spacing: 6) {
+                HStack(spacing: 6) {
+                    Button(action: onTipTap) {
                         tagChip
+                    }
+                    .buttonStyle(.plain)
+                    .popoverTip(
+                        displayedReplacementTip,
+                        arrowEdge: .top
+                    )
+                    Button(action: onTipTap) {
                         Image(systemName: "lightbulb")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .popoverTip(
+                        displayedReplacementTip,
+                        arrowEdge: .top
+                    )
                 }
-                .buttonStyle(.plain)
             } else {
                 tagChip
             }
