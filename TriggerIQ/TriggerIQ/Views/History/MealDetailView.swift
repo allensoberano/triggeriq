@@ -218,7 +218,7 @@ private struct CheckInTimelineRow: View {
     }
 
     private var maxSymptom: Int {
-        [checkIn.bloating, checkIn.jointPain, checkIn.fatigue,
+        [checkIn.bloating, checkIn.gassy, checkIn.jointPain, checkIn.fatigue,
          checkIn.brainFog, checkIn.skin]
             .compactMap { $0 }
             .max() ?? 0
@@ -282,6 +282,7 @@ private struct CheckInTimelineRow: View {
         guard checkIn.completedTime != nil else { return "" }
         let all = [
             ("Bloating", checkIn.bloating),
+            ("Gassy", checkIn.gassy),
             ("Joint pain", checkIn.jointPain),
             ("Fatigue", checkIn.fatigue),
             ("Brain fog", checkIn.brainFog),

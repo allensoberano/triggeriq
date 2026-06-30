@@ -22,6 +22,7 @@ struct CheckInViewModelTests {
     @Test func defaultSymptomsAreAllZero() {
         let vm = makeVM(.oneHour)
         #expect(vm.bloating == 0)
+        #expect(vm.gassy == 0)
         #expect(vm.jointPain == 0)
         #expect(vm.fatigue == 0)
         #expect(vm.brainFog == 0)

@@ -91,6 +91,7 @@ final class CheckIn {
     // Fixed dimensions for V1. Flat optional fields are simpler than a relationship
     // for a small, known set of symptoms.
     var bloating: Int?      // 0 none, 1 mild, 2 moderate, 3 severe
+    var gassy: Int?
     var jointPain: Int?
     var fatigue: Int?
     var brainFog: Int?

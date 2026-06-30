@@ -57,7 +57,7 @@ final class PatternEngine: PatternEngineProtocol {
     // MARK: - Helpers
 
     private func maxSeverity(_ checkIn: CheckIn) -> Double {
-        let vals = [checkIn.bloating, checkIn.jointPain, checkIn.fatigue,
+        let vals = [checkIn.bloating, checkIn.gassy, checkIn.jointPain, checkIn.fatigue,
                     checkIn.brainFog, checkIn.skin].compactMap { $0 }
         return Double(vals.max() ?? 0)
     }
