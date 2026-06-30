@@ -8,6 +8,7 @@ struct MealConfirmView: View {
 
     @State private var editedDescription: String
     @State private var foodTags: [ParsedFoodTag]
+    @State private var selectedReplacementTip: ReplacementTip?
 
     init(vm: LogMealViewModel, result: AnalysisResult, context: ModelContext) {
         self.vm = vm
@@ -42,7 +43,20 @@ struct MealConfirmView: View {
             if !foodTags.isEmpty {
                 Section("Detected ingredients") {
                     ForEach(foodTags, id: \.rawName) { tag in
-                        FoodTagRow(tag: tag)
+                        let advice = IngredientInflammationAdvisor.advice(for: tag)
+                        if let replacementTip = advice.replacementTip {
+                            Button {
+                                selectedReplacementTip = ReplacementTip(
+                                    ingredientName: tag.rawName.capitalized,
+                                    message: replacementTip
+                                )
+                            } label: {
+                                FoodTagRow(tag: tag, advice: advice)
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            FoodTagRow(tag: tag, advice: advice)
+                        }
                     }
                     .onDelete { indices in
                         foodTags.remove(atOffsets: indices)
@@ -75,6 +89,13 @@ struct MealConfirmView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") { vm.retry() }
             }
+        }
+        .alert(item: $selectedReplacementTip) { tip in
+            Alert(
+                title: Text("\(tip.ingredientName) replacement tip"),
+                message: Text(tip.message),
+                dismissButton: .default(Text("Got it"))
+            )
         }
     }
 }
@@ -118,12 +139,22 @@ private struct ScoreRow: View {
 
 private struct FoodTagRow: View {
     let tag: ParsedFoodTag
+    let advice: IngredientInflammationAdvice
+
+    private var levelColor: Color {
+        switch advice.level {
+        case .low: return .green
+        case .moderate: return .orange
+        case .high: return .red
+        }
+    }
 
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(tag.rawName.capitalized)
                     .font(.subheadline)
+                    .foregroundStyle(levelColor)
                 if let category = tag.category {
                     Text(category)
                         .font(.caption)
@@ -133,10 +164,22 @@ private struct FoodTagRow: View {
             Spacer()
             Text(tag.canonicalTag)
                 .font(.caption)
+                .foregroundStyle(levelColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color(.tertiarySystemFill))
+                .background(levelColor.opacity(0.14))
                 .clipShape(Capsule())
+            if advice.replacementTip != nil {
+                Image(systemName: "lightbulb")
+                    .font(.caption)
+                    .foregroundStyle(levelColor)
+            }
         }
     }
+}
+
+private struct ReplacementTip: Identifiable {
+    let id = UUID()
+    let ingredientName: String
+    let message: String
 }
