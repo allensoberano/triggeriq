@@ -9,7 +9,7 @@ struct MealConfirmView: View {
 
     @State private var editedDescription: String
     @State private var foodTags: [ParsedFoodTag]
-    @State private var selectedTipIdentifier: String?
+    @State private var selectedTipKey: IngredientTipKey?
     @State private var selectedReplacementTip: IngredientReplacementTip?
 
     init(vm: LogMealViewModel, result: AnalysisResult, context: ModelContext) {
@@ -47,15 +47,15 @@ struct MealConfirmView: View {
                     ForEach(foodTags, id: \.rawName) { tag in
                         let advice = IngredientInflammationAdvisor.advice(for: tag)
                         if let replacementTip = advice.replacementTip {
-                            let tipIdentifier = "\(tag.rawName.lowercased())|\(tag.canonicalTag.lowercased())"
+                            let tipKey = IngredientTipKey(tag: tag)
                             Button {
-                                if selectedTipIdentifier == tipIdentifier {
-                                    selectedTipIdentifier = nil
+                                if selectedTipKey == tipKey {
+                                    selectedTipKey = nil
                                     selectedReplacementTip = nil
                                 } else {
-                                    selectedTipIdentifier = tipIdentifier
+                                    selectedTipKey = tipKey
                                     selectedReplacementTip = IngredientReplacementTip(
-                                        id: tipIdentifier,
+                                        id: tipKey.id,
                                         ingredientName: tag.rawName.capitalized,
                                         detailMessage: replacementTip
                                     )
@@ -65,7 +65,7 @@ struct MealConfirmView: View {
                             }
                             .buttonStyle(.plain)
                             .popoverTip(
-                                selectedTipIdentifier == tipIdentifier
+                                selectedTipKey == tipKey
                                 ? selectedReplacementTip
                                 : nil,
                                 arrowEdge: .top
@@ -188,6 +188,24 @@ private struct FoodTagRow: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+private struct IngredientTipKey: Equatable {
+    let rawName: String
+    let canonicalTag: String
+    let category: String?
+
+    init(tag: ParsedFoodTag) {
+        self.rawName = tag.rawName
+        self.canonicalTag = tag.canonicalTag
+        self.category = tag.category
+    }
+
+    var id: String {
+        [rawName, canonicalTag, category ?? ""]
+            .map { Data($0.lowercased().utf8).base64EncodedString() }
+            .joined(separator: ".")
     }
 }
 
