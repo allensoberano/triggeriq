@@ -5,6 +5,7 @@ struct TodayView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var vm = TodayViewModel()
     @State private var showLogMeal = false
+    @State private var showBristolHydration = false
 
     var body: some View {
         NavigationStack {
@@ -46,6 +47,14 @@ struct TodayView: View {
                     )
                 }
 
+                Section {
+                    Button {
+                        showBristolHydration = true
+                    } label: {
+                        Label("Log bowel movement or hydration", systemImage: "plus.circle")
+                    }
+                }
+
                 Section("Today's meals") {
                     if vm.todayMeals.isEmpty {
                         Text("No meals logged yet")
@@ -71,6 +80,9 @@ struct TodayView: View {
             .sheet(isPresented: $showLogMeal) {
                 LogMealSheet()
             }
+            .sheet(isPresented: $showBristolHydration) {
+                BristolHydrationView()
+            }
             .sheet(item: $vm.pendingCheckIn) { destination in
                 CheckInView(vm: CheckInViewModel(
                     checkInType: destination.checkInType,
@@ -82,6 +94,9 @@ struct TodayView: View {
                 await vm.refreshHealthKit(context: context)
             }
             .onChange(of: showLogMeal) { _, isShowing in
+                if !isShowing { vm.load(context: context) }
+            }
+            .onChange(of: showBristolHydration) { _, isShowing in
                 if !isShowing { vm.load(context: context) }
             }
             .onChange(of: vm.stress) { _, _ in vm.saveConfounders(context: context) }
