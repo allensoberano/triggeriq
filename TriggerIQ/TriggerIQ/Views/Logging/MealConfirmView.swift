@@ -10,6 +10,7 @@ struct MealConfirmView: View {
     @State private var editedDescription: String
     @State private var foodTags: [ParsedFoodTag]
     @State private var selectedTipIdentifier: String?
+    @State private var selectedReplacementTip: IngredientReplacementTip?
 
     init(vm: LogMealViewModel, result: AnalysisResult, context: ModelContext) {
         self.vm = vm
@@ -48,14 +49,24 @@ struct MealConfirmView: View {
                         if let replacementTip = advice.replacementTip {
                             let tipIdentifier = "\(tag.rawName.lowercased())|\(tag.canonicalTag.lowercased())"
                             Button {
-                                selectedTipIdentifier = selectedTipIdentifier == tipIdentifier ? nil : tipIdentifier
+                                if selectedTipIdentifier == tipIdentifier {
+                                    selectedTipIdentifier = nil
+                                    selectedReplacementTip = nil
+                                } else {
+                                    selectedTipIdentifier = tipIdentifier
+                                    selectedReplacementTip = IngredientReplacementTip(
+                                        id: tipIdentifier,
+                                        ingredientName: tag.rawName.capitalized,
+                                        detailMessage: replacementTip
+                                    )
+                                }
                             } label: {
                                 FoodTagRow(tag: tag, advice: advice)
                             }
                             .buttonStyle(.plain)
                             .popoverTip(
                                 selectedTipIdentifier == tipIdentifier
-                                ? IngredientReplacementTip(ingredientName: tag.rawName.capitalized, detailMessage: replacementTip)
+                                ? selectedReplacementTip
                                 : nil,
                                 arrowEdge: .top
                             )
@@ -181,6 +192,7 @@ private struct FoodTagRow: View {
 }
 
 private struct IngredientReplacementTip: Tip {
+    let id: String
     let ingredientName: String
     let detailMessage: String
 

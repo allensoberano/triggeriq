@@ -9,7 +9,11 @@ struct TriggerIQApp: App {
 
     init() {
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
-        try? Tips.configure()
+        do {
+            try Tips.configure()
+        } catch {
+            print("TipKit configuration failed: \(error)")
+        }
     }
 
     var sharedModelContainer: ModelContainer = {
