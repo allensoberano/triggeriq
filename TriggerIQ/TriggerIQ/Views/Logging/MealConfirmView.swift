@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TipKit
 
 struct MealConfirmView: View {
     @ObservedObject var vm: LogMealViewModel
@@ -8,7 +9,7 @@ struct MealConfirmView: View {
 
     @State private var editedDescription: String
     @State private var foodTags: [ParsedFoodTag]
-    @State private var selectedReplacementTip: ReplacementTip?
+    @State private var selectedTipIdentifier: String?
 
     init(vm: LogMealViewModel, result: AnalysisResult, context: ModelContext) {
         self.vm = vm
@@ -45,15 +46,19 @@ struct MealConfirmView: View {
                     ForEach(foodTags, id: \.rawName) { tag in
                         let advice = IngredientInflammationAdvisor.advice(for: tag)
                         if let replacementTip = advice.replacementTip {
+                            let tipIdentifier = "\(tag.rawName.lowercased())|\(tag.canonicalTag.lowercased())"
                             Button {
-                                selectedReplacementTip = ReplacementTip(
-                                    ingredientName: tag.rawName.capitalized,
-                                    message: replacementTip
-                                )
+                                selectedTipIdentifier = selectedTipIdentifier == tipIdentifier ? nil : tipIdentifier
                             } label: {
                                 FoodTagRow(tag: tag, advice: advice)
                             }
                             .buttonStyle(.plain)
+                            .popoverTip(
+                                selectedTipIdentifier == tipIdentifier
+                                ? IngredientReplacementTip(ingredientName: tag.rawName.capitalized, detailMessage: replacementTip)
+                                : nil,
+                                arrowEdge: .top
+                            )
                         } else {
                             FoodTagRow(tag: tag, advice: advice)
                         }
@@ -89,13 +94,6 @@ struct MealConfirmView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") { vm.retry() }
             }
-        }
-        .alert(item: $selectedReplacementTip) { tip in
-            Alert(
-                title: Text("\(tip.ingredientName) replacement tip"),
-                message: Text(tip.message),
-                dismissButton: .default(Text("Got it"))
-            )
         }
     }
 }
@@ -159,7 +157,6 @@ private struct FoodTagRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(tag.rawName.capitalized)
                     .font(.subheadline)
-                    .foregroundStyle(levelColor)
                 if let category = tag.category {
                     Text(category)
                         .font(.caption)
@@ -177,14 +174,25 @@ private struct FoodTagRow: View {
             if advice.replacementTip != nil {
                 Image(systemName: "lightbulb")
                     .font(.caption)
-                    .foregroundStyle(levelColor)
+                    .foregroundStyle(.secondary)
             }
         }
     }
 }
 
-private struct ReplacementTip: Identifiable {
-    let id = UUID()
+private struct IngredientReplacementTip: Tip {
     let ingredientName: String
-    let message: String
+    let detailMessage: String
+
+    var title: Text {
+        Text("\(ingredientName) replacement tip")
+    }
+
+    var message: Text? {
+        Text(detailMessage)
+    }
+
+    var image: Image? {
+        Image(systemName: "lightbulb")
+    }
 }

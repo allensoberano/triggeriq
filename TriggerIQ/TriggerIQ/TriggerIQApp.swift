@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import TipKit
 
 @main
 struct TriggerIQApp: App {
@@ -8,6 +9,7 @@ struct TriggerIQApp: App {
 
     init() {
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+        try? Tips.configure()
     }
 
     var sharedModelContainer: ModelContainer = {
