@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var context
+
     var body: some View {
         TabView {
             TodayView()
@@ -9,6 +11,9 @@ struct ContentView: View {
 
             HistoryView()
                 .tabItem { Label("History", systemImage: "clock.fill") }
+        }
+        .task {
+            resolve(PhotoStorageServiceProtocol.self).purgeExpired(context: context)
         }
     }
 }
