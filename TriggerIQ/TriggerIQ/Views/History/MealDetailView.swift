@@ -195,7 +195,7 @@ private struct FlowLayout: View {
         let advice: IngredientInflammationAdvice
     }
 
-    let items: [HistoryIngredientItem]
+    private let items: [HistoryIngredientItem]
     @Binding var selectedTipKey: HistoryIngredientTipKey?
     @Binding var selectedReplacementTip: HistoryIngredientReplacementTip?
 
