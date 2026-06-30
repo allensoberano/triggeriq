@@ -188,21 +188,17 @@ private struct FoodTagRow: View {
                         tagChip
                     }
                     .buttonStyle(.plain)
-                    .popoverTip(
-                        displayedReplacementTip,
-                        arrowEdge: .top
-                    )
                     Button(action: onTipTap) {
                         Image(systemName: "lightbulb")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .popoverTip(
-                        displayedReplacementTip,
-                        arrowEdge: .top
-                    )
                 }
+                .popoverTip(
+                    displayedReplacementTip,
+                    arrowEdge: .top
+                )
             } else {
                 tagChip
             }
