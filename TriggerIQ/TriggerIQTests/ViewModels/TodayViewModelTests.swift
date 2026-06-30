@@ -76,6 +76,7 @@ struct TodayViewModelTests {
         log.stressLevel = 2
         log.alcoholDrinks = 1
         log.caffeineDrinks = 3
+        log.waterGlasses = 6
         context.insert(log)
         try context.save()
 
@@ -84,6 +85,7 @@ struct TodayViewModelTests {
         #expect(vm.stress == 2)
         #expect(vm.alcoholDrinks == 1)
         #expect(vm.caffeineDrinks == 3)
+        #expect(vm.waterGlasses == 6)
     }
 
     // MARK: - saveConfounders
@@ -93,11 +95,13 @@ struct TodayViewModelTests {
         vm.load(context: context)
         vm.stress = 3
         vm.alcoholDrinks = 2
+        vm.waterGlasses = 8
         vm.saveConfounders(context: context)
 
         let log = try context.fetch(FetchDescriptor<DailyLog>()).first!
         #expect(log.stressLevel == 3)
         #expect(log.alcoholDrinks == 2)
+        #expect(log.waterGlasses == 8)
     }
 
     // MARK: - hasPendingCheckIn

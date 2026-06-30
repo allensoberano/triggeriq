@@ -301,13 +301,15 @@ private struct ConfounderSummaryView: View {
     let log: DailyLog
 
     var body: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: 16) {
             ConfounderChip(icon: "brain.head.profile", label: "Stress",
                            value: log.stressLevel, max: 3)
             ConfounderChip(icon: "wineglass", label: "Alcohol",
                            value: log.alcoholDrinks, max: nil)
             ConfounderChip(icon: "cup.and.saucer.fill", label: "Caffeine",
                            value: log.caffeineDrinks, max: nil)
+            ConfounderChip(icon: "drop.fill", label: "Water",
+                           value: log.waterGlasses, max: nil)
         }
     }
 }
