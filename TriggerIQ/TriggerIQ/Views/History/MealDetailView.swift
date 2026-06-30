@@ -189,9 +189,33 @@ private struct ScoreBarView: View {
 // MARK: - Food Tag Flow Layout
 
 private struct FlowLayout: View {
-    let tags: [FoodTag]
+    private struct HistoryIngredientItem: Identifiable {
+        let id: UUID
+        let tag: FoodTag
+        let advice: IngredientInflammationAdvice
+    }
+
+    let items: [HistoryIngredientItem]
     @Binding var selectedTipKey: HistoryIngredientTipKey?
     @Binding var selectedReplacementTip: HistoryIngredientReplacementTip?
+
+    init(
+        tags: [FoodTag],
+        selectedTipKey: Binding<HistoryIngredientTipKey?>,
+        selectedReplacementTip: Binding<HistoryIngredientReplacementTip?>
+    ) {
+        self.items = tags.map { tag in
+            let parsedTag = ParsedFoodTag(
+                rawName: tag.rawName,
+                canonicalTag: tag.canonicalTag,
+                category: tag.category
+            )
+            let advice = IngredientInflammationAdvisor.advice(for: parsedTag)
+            return HistoryIngredientItem(id: tag.id, tag: tag, advice: advice)
+        }
+        self._selectedTipKey = selectedTipKey
+        self._selectedReplacementTip = selectedReplacementTip
+    }
 
     var body: some View {
         LazyVGrid(
@@ -199,15 +223,9 @@ private struct FlowLayout: View {
             alignment: .leading,
             spacing: 8
         ) {
-            ForEach(tags) { tag in
-                let parsedTag = ParsedFoodTag(
-                    rawName: tag.rawName,
-                    canonicalTag: tag.canonicalTag,
-                    category: tag.category
-                )
-                let advice = IngredientInflammationAdvisor.advice(for: parsedTag)
-                if let replacementTip = advice.replacementTip {
-                    let tipKey = HistoryIngredientTipKey(tag: tag)
+            ForEach(items) { item in
+                if let replacementTip = item.advice.replacementTip {
+                    let tipKey = HistoryIngredientTipKey(tagID: item.id)
                     Button {
                         if selectedTipKey == tipKey {
                             selectedTipKey = nil
@@ -215,13 +233,13 @@ private struct FlowLayout: View {
                         } else {
                             selectedTipKey = tipKey
                             selectedReplacementTip = HistoryIngredientReplacementTip(
-                                id: tipKey.id.uuidString,
-                                ingredientName: tag.rawName.capitalized,
+                                id: tipKey.id,
+                                ingredientName: item.tag.rawName.capitalized,
                                 detailMessage: replacementTip
                             )
                         }
                     } label: {
-                        IngredientChip(tag: tag, advice: advice, showsTipIndicator: true)
+                        IngredientChip(tag: item.tag, advice: item.advice, showsTipIndicator: true)
                     }
                     .buttonStyle(.plain)
                     .popoverTip(
@@ -231,7 +249,7 @@ private struct FlowLayout: View {
                         arrowEdge: .top
                     )
                 } else {
-                    IngredientChip(tag: tag, advice: advice)
+                    IngredientChip(tag: item.tag, advice: item.advice)
                 }
             }
         }
@@ -270,10 +288,10 @@ private struct IngredientChip: View {
 }
 
 private struct HistoryIngredientTipKey: Equatable {
-    let id: UUID
+    let id: String
 
-    init(tag: FoodTag) {
-        self.id = tag.id
+    init(tagID: UUID) {
+        self.id = tagID.uuidString
     }
 }
 
