@@ -141,6 +141,11 @@ private struct FoodTagRow: View {
     let tag: ParsedFoodTag
     let advice: IngredientInflammationAdvice
 
+    init(tag: ParsedFoodTag, advice: IngredientInflammationAdvice? = nil) {
+        self.tag = tag
+        self.advice = advice ?? IngredientInflammationAdvisor.advice(for: tag)
+    }
+
     private var levelColor: Color {
         switch advice.level {
         case .low: return .green
