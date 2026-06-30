@@ -269,8 +269,18 @@ private struct IngredientChip: View {
         }
     }
 
+    private var levelSymbol: String {
+        switch advice.level {
+        case .low: return "checkmark.circle.fill"
+        case .moderate: return "exclamationmark.circle.fill"
+        case .high: return "flame.fill"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 4) {
+            Image(systemName: levelSymbol)
+                .font(.caption2)
             Text(tag.rawName.capitalized)
             if showsTipIndicator {
                 Image(systemName: "lightbulb")
@@ -301,7 +311,7 @@ private struct HistoryIngredientReplacementTip: Tip {
     let detailMessage: String
 
     var title: Text {
-        Text("\(ingredientName) replacement tip")
+        Text("Replacement tip")
     }
 
     var message: Text? {
