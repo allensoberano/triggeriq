@@ -19,6 +19,7 @@ struct CheckInView: View {
 
                 Section("Symptoms") {
                     SymptomRow(label: "Bloating", value: $vm.bloating)
+                    SymptomRow(label: "Gassy", value: $vm.gassy)
                     SymptomRow(label: "Joint Pain", value: $vm.jointPain)
                     SymptomRow(label: "Fatigue", value: $vm.fatigue)
                     SymptomRow(label: "Brain Fog", value: $vm.brainFog)

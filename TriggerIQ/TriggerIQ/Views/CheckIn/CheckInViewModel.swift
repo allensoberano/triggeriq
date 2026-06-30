@@ -5,6 +5,7 @@ import Combine
 @MainActor
 final class CheckInViewModel: ObservableObject {
     @Published var bloating: Int = 0
+    @Published var gassy: Int = 0
     @Published var jointPain: Int = 0
     @Published var fatigue: Int = 0
     @Published var brainFog: Int = 0
@@ -29,6 +30,7 @@ final class CheckInViewModel: ObservableObject {
         let checkIn = CheckIn(type: checkInType, scheduledTime: Date())
         checkIn.completedTime = Date()
         checkIn.bloating = bloating
+        checkIn.gassy = gassy
         checkIn.jointPain = jointPain
         checkIn.fatigue = fatigue
         checkIn.brainFog = brainFog
