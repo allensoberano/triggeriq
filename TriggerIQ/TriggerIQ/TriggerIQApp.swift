@@ -2,17 +2,19 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 import TipKit
+import OSLog
 
 @main
 struct TriggerIQApp: App {
     @StateObject private var notificationDelegate = NotificationDelegate.shared
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TriggerIQ", category: "TipKit")
 
     init() {
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
         do {
             try Tips.configure()
         } catch {
-            print("TipKit configuration failed: \(error)")
+            logger.error("TipKit configuration failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

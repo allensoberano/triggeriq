@@ -205,7 +205,7 @@ private struct IngredientTipKey: Equatable {
     var id: String {
         [rawName, canonicalTag, category ?? ""]
             .map { Data($0.lowercased().utf8).base64EncodedString() }
-            .joined(separator: ".")
+            .joined(separator: ":")
     }
 }
 
