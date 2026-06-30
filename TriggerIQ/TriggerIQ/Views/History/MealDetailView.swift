@@ -210,7 +210,7 @@ private struct FlowLayout: View {
                 canonicalTag: tag.canonicalTag,
                 category: tag.category
             )
-            let advice = IngredientInflammationAdvisor.advice(for: parsedTag)
+            let advice = resolve(IngredientInflammationAdvisorProtocol.self).advice(for: parsedTag)
             return HistoryIngredientItem(id: tag.id, tag: tag, advice: advice)
         }
         self._selectedTipKey = selectedTipKey

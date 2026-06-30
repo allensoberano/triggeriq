@@ -14,6 +14,7 @@ final class AppContainer {
             AnalysisServiceAssembly(),
             PhotoStorageAssembly(),
             PatternEngineAssembly(),
+            IngredientInflammationAdvisorAssembly(),
         ])
     }
 }

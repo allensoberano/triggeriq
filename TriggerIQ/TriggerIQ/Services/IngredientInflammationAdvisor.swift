@@ -11,7 +11,11 @@ struct IngredientInflammationAdvice {
     let replacementTip: String?
 }
 
-enum IngredientInflammationAdvisor {
+protocol IngredientInflammationAdvisorProtocol {
+    func advice(for tag: ParsedFoodTag) -> IngredientInflammationAdvice
+}
+
+final class IngredientInflammationAdvisor: IngredientInflammationAdvisorProtocol {
     private struct Rule {
         let keywords: [String]
         let level: IngredientInflammationLevel
@@ -71,14 +75,14 @@ enum IngredientInflammationAdvisor {
         )
     ]
 
-    static func advice(for tag: ParsedFoodTag) -> IngredientInflammationAdvice {
+    func advice(for tag: ParsedFoodTag) -> IngredientInflammationAdvice {
         let haystacks = [
             tag.rawName.lowercased(),
             tag.canonicalTag.lowercased(),
             (tag.category ?? "").lowercased()
         ]
 
-        if let match = rules.first(where: { rule in
+        if let match = IngredientInflammationAdvisor.rules.first(where: { rule in
             rule.keywords.contains(where: { keyword in
                 haystacks.contains(where: { $0.contains(keyword) })
             })

@@ -45,7 +45,7 @@ struct MealConfirmView: View {
             if !foodTags.isEmpty {
                 Section("Detected ingredients") {
                     ForEach(foodTags, id: \.rawName) { tag in
-                        let advice = IngredientInflammationAdvisor.advice(for: tag)
+                        let advice = resolve(IngredientInflammationAdvisorProtocol.self).advice(for: tag)
                         if let replacementTip = advice.replacementTip {
                             let tipKey = IngredientTipKey(tag: tag)
                             Button {
@@ -152,7 +152,7 @@ private struct FoodTagRow: View {
 
     init(tag: ParsedFoodTag, advice: IngredientInflammationAdvice? = nil) {
         self.tag = tag
-        self.advice = advice ?? IngredientInflammationAdvisor.advice(for: tag)
+        self.advice = advice ?? resolve(IngredientInflammationAdvisorProtocol.self).advice(for: tag)
     }
 
     private var levelColor: Color {
