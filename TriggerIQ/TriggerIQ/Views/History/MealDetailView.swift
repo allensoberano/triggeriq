@@ -1,12 +1,15 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import TipKit
 
 struct MealDetailView: View {
     let meal: Meal
     @Environment(\.modelContext) private var context
     @State private var dailyLog: DailyLog?
     @State private var mealPhoto: UIImage?
+    @State private var selectedTipKey: HistoryIngredientTipKey?
+    @State private var selectedReplacementTip: HistoryIngredientReplacementTip?
 
     private var photoStorage: PhotoStorageServiceProtocol { resolve() }
 
@@ -38,7 +41,11 @@ struct MealDetailView: View {
             // MARK: - Food Tags
             if !meal.foodTags.isEmpty {
                 Section("Ingredients") {
-                    FlowLayout(tags: meal.foodTags)
+                    FlowLayout(
+                        tags: meal.foodTags,
+                        selectedTipKey: $selectedTipKey,
+                        selectedReplacementTip: $selectedReplacementTip
+                    )
                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
             }
@@ -183,6 +190,8 @@ private struct ScoreBarView: View {
 
 private struct FlowLayout: View {
     let tags: [FoodTag]
+    @Binding var selectedTipKey: HistoryIngredientTipKey?
+    @Binding var selectedReplacementTip: HistoryIngredientReplacementTip?
 
     var body: some View {
         LazyVGrid(
@@ -191,14 +200,98 @@ private struct FlowLayout: View {
             spacing: 8
         ) {
             ForEach(tags) { tag in
-                Text(tag.rawName.capitalized)
-                    .font(.caption)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color(.tertiarySystemFill))
-                    .clipShape(Capsule())
+                let parsedTag = ParsedFoodTag(
+                    rawName: tag.rawName,
+                    canonicalTag: tag.canonicalTag,
+                    category: tag.category
+                )
+                let advice = IngredientInflammationAdvisor.advice(for: parsedTag)
+                if let replacementTip = advice.replacementTip {
+                    let tipKey = HistoryIngredientTipKey(tag: tag)
+                    Button {
+                        if selectedTipKey == tipKey {
+                            selectedTipKey = nil
+                            selectedReplacementTip = nil
+                        } else {
+                            selectedTipKey = tipKey
+                            selectedReplacementTip = HistoryIngredientReplacementTip(
+                                id: tipKey.id.uuidString,
+                                ingredientName: tag.rawName.capitalized,
+                                detailMessage: replacementTip
+                            )
+                        }
+                    } label: {
+                        IngredientChip(tag: tag, advice: advice, showsTipIndicator: true)
+                    }
+                    .buttonStyle(.plain)
+                    .popoverTip(
+                        selectedTipKey == tipKey
+                        ? selectedReplacementTip
+                        : nil,
+                        arrowEdge: .top
+                    )
+                } else {
+                    IngredientChip(tag: tag, advice: advice)
+                }
             }
         }
+    }
+}
+
+private struct IngredientChip: View {
+    let tag: FoodTag
+    let advice: IngredientInflammationAdvice
+    var showsTipIndicator: Bool = false
+
+    private var levelColor: Color {
+        switch advice.level {
+        case .low: return .green
+        case .moderate: return .orange
+        case .high: return .red
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(tag.rawName.capitalized)
+            if showsTipIndicator {
+                Image(systemName: "lightbulb")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(levelColor)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(levelColor.opacity(0.14))
+        .clipShape(Capsule())
+    }
+}
+
+private struct HistoryIngredientTipKey: Equatable {
+    let id: UUID
+
+    init(tag: FoodTag) {
+        self.id = tag.id
+    }
+}
+
+private struct HistoryIngredientReplacementTip: Tip {
+    let id: String
+    let ingredientName: String
+    let detailMessage: String
+
+    var title: Text {
+        Text("\(ingredientName) replacement tip")
+    }
+
+    var message: Text? {
+        Text(detailMessage)
+    }
+
+    var image: Image? {
+        Image(systemName: "lightbulb")
     }
 }
 
