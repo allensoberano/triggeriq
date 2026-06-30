@@ -5,6 +5,7 @@ struct TodayView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var vm = TodayViewModel()
     @State private var showLogMeal = false
+    @State private var showBathroomLogging = false
 
     var body: some View {
         NavigationStack {
@@ -46,6 +47,14 @@ struct TodayView: View {
                     )
                 }
 
+                Section("Bathroom") {
+                    Button {
+                        showBathroomLogging = true
+                    } label: {
+                        Label("Log bowel movement or hydration", systemImage: "plus.circle")
+                    }
+                }
+
                 Section("Today's meals") {
                     if vm.todayMeals.isEmpty {
                         Text("No meals logged yet")
@@ -70,6 +79,9 @@ struct TodayView: View {
             }
             .sheet(isPresented: $showLogMeal) {
                 LogMealSheet()
+            }
+            .sheet(isPresented: $showBathroomLogging) {
+                BristolHydrationView()
             }
             .sheet(item: $vm.pendingCheckIn) { destination in
                 CheckInView(vm: CheckInViewModel(
