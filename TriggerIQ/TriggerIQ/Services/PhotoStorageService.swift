@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 import SwiftData
 
+@MainActor
 protocol PhotoStorageServiceProtocol {
     func save(jpegData: Data) throws -> String
     func load(fileName: String) -> UIImage?
@@ -9,6 +10,7 @@ protocol PhotoStorageServiceProtocol {
     func purgeExpired(context: ModelContext)
 }
 
+@MainActor
 final class PhotoStorageService: PhotoStorageServiceProtocol {
     let directory: URL
 

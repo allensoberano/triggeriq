@@ -1,10 +1,12 @@
 import Foundation
 import SwiftData
 
+@MainActor
 protocol PatternEngineProtocol {
     func recompute(context: ModelContext)
 }
 
+@MainActor
 final class PatternEngine: PatternEngineProtocol {
 
     func recompute(context: ModelContext) {

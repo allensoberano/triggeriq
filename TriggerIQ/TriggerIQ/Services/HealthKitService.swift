@@ -54,6 +54,7 @@ final class HealthKitService: HealthKitServiceProtocol {
 
     // MARK: - Private helpers
 
+    @MainActor
     private func fetchOrCreateLog(for startOfDay: Date, context: ModelContext) -> DailyLog {
         let descriptor = FetchDescriptor<DailyLog>(
             predicate: #Predicate { $0.date == startOfDay }
