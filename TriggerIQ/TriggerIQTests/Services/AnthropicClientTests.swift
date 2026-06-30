@@ -21,15 +21,13 @@ struct AnthropicClientTests {
 
     @Test func sendsAuthorizationHeader() async throws {
         mockSession.responseData = makeResponse(text: "hello")
-        var capturedRequest: URLRequest?
-        // We verify indirectly — the mock session receives the request
-        // and the response parses correctly only if the request was formed
         let result = try await client.send(
             messages: [AnthropicMessage(role: "user", content: [.text("hi")])],
             system: "test"
         )
         #expect(result == "hello")
-        _ = capturedRequest // suppress unused warning
+        let authHeader = mockSession.capturedRequest?.value(forHTTPHeaderField: "x-api-key")
+        #expect(authHeader == "test-key")
     }
 
     @Test func returnsTextFromResponse() async throws {

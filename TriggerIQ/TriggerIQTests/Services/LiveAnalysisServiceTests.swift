@@ -2,6 +2,7 @@ import Testing
 import Foundation
 @testable import TriggerIQ
 
+@MainActor
 struct LiveAnalysisServiceTests {
     private let mockSession = MockURLSession()
     private var client: AnthropicClient { AnthropicClient(apiKey: "test-key", session: mockSession) }
