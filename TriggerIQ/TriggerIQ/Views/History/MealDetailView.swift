@@ -219,7 +219,7 @@ private struct FlowLayout: View {
 
     var body: some View {
         LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 80))],
+            columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)],
             alignment: .leading,
             spacing: 8
         ) {
@@ -282,6 +282,8 @@ private struct IngredientChip: View {
             Image(systemName: levelSymbol)
                 .font(.caption2)
             Text(tag.rawName.capitalized)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
             if showsTipIndicator {
                 Image(systemName: "lightbulb")
                     .font(.caption2)
