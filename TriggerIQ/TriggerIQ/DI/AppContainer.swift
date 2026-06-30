@@ -13,6 +13,7 @@ final class AppContainer {
             HealthKitServiceAssembly(),
             AnalysisServiceAssembly(),
             PhotoStorageAssembly(),
+            PatternEngineAssembly(),
         ])
     }
 }

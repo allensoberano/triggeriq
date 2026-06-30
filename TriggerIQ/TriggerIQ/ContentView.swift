@@ -11,6 +11,9 @@ struct ContentView: View {
 
             HistoryView()
                 .tabItem { Label("History", systemImage: "clock.fill") }
+
+            InsightsView()
+                .tabItem { Label("Insights", systemImage: "chart.line.uptrend.xyaxis") }
         }
         .task {
             resolve(PhotoStorageServiceProtocol.self).purgeExpired(context: context)
