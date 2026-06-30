@@ -67,6 +67,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Clear All Data", systemImage: "trash")
                     }
+                    #if DEBUG
+                    Button("Reset Onboarding") {
+                        vm.resetOnboarding(context: context)
+                    }
+                    #endif
                 }
             }
             .navigationTitle("Settings")

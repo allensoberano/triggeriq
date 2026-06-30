@@ -57,6 +57,14 @@ final class SettingsViewModel: ObservableObject {
         try? context.save()
     }
 
+    #if DEBUG
+    func resetOnboarding(context: ModelContext) {
+        guard let profile else { return }
+        profile.onboardingCompleted = false
+        try? context.save()
+    }
+    #endif
+
     private func parse(_ text: String) -> [String] {
         text.split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }

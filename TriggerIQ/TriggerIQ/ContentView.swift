@@ -5,19 +5,14 @@ import SwiftData
 
 struct RootView: View {
     @Query private var profiles: [UserProfile]
-    @State private var sessionCompleted = false
 
     private var showOnboarding: Bool {
-        #if DEBUG
-        return !sessionCompleted
-        #else
-        return !(profiles.first?.onboardingCompleted ?? false)
-        #endif
+        !(profiles.first?.onboardingCompleted ?? false)
     }
 
     var body: some View {
         if showOnboarding {
-            OnboardingView(onComplete: { sessionCompleted = true })
+            OnboardingView(onComplete: {})
         } else {
             ContentView()
         }
