@@ -48,25 +48,27 @@ struct MealConfirmView: View {
                         let advice = IngredientInflammationAdvisor.advice(for: tag)
                         if let replacementTip = advice.replacementTip {
                             let tipKey = IngredientTipKey(tag: tag)
-                            FoodTagRow(
-                                tag: tag,
-                                advice: advice,
-                                displayedReplacementTip: selectedTipKey == tipKey
+                            Button {
+                                if selectedTipKey == tipKey {
+                                    selectedTipKey = nil
+                                    selectedReplacementTip = nil
+                                } else {
+                                    selectedTipKey = tipKey
+                                    selectedReplacementTip = IngredientReplacementTip(
+                                        id: tipKey.id,
+                                        ingredientName: tag.rawName.capitalized,
+                                        detailMessage: replacementTip
+                                    )
+                                }
+                            } label: {
+                                FoodTagRow(tag: tag, advice: advice)
+                            }
+                            .buttonStyle(.plain)
+                            .popoverTip(
+                                selectedTipKey == tipKey
                                 ? selectedReplacementTip
                                 : nil,
-                                onTipTap: {
-                                    if selectedTipKey == tipKey {
-                                        selectedTipKey = nil
-                                        selectedReplacementTip = nil
-                                    } else {
-                                        selectedTipKey = tipKey
-                                        selectedReplacementTip = IngredientReplacementTip(
-                                            id: tipKey.id,
-                                            ingredientName: tag.rawName.capitalized,
-                                            detailMessage: replacementTip
-                                        )
-                                    }
-                                }
+                                arrowEdge: .top
                             )
                         } else {
                             FoodTagRow(tag: tag, advice: advice)
@@ -147,19 +149,10 @@ private struct ScoreRow: View {
 private struct FoodTagRow: View {
     let tag: ParsedFoodTag
     let advice: IngredientInflammationAdvice
-    let displayedReplacementTip: IngredientReplacementTip?
-    let onTipTap: (() -> Void)?
 
-    init(
-        tag: ParsedFoodTag,
-        advice: IngredientInflammationAdvice? = nil,
-        displayedReplacementTip: IngredientReplacementTip? = nil,
-        onTipTap: (() -> Void)? = nil
-    ) {
+    init(tag: ParsedFoodTag, advice: IngredientInflammationAdvice? = nil) {
         self.tag = tag
         self.advice = advice ?? IngredientInflammationAdvisor.advice(for: tag)
-        self.displayedReplacementTip = displayedReplacementTip
-        self.onTipTap = onTipTap
     }
 
     private var levelColor: Color {
@@ -182,37 +175,19 @@ private struct FoodTagRow: View {
                 }
             }
             Spacer()
-            if advice.replacementTip != nil, let onTipTap {
-                HStack(spacing: 6) {
-                    Button(action: onTipTap) {
-                        tagChip
-                    }
-                    .buttonStyle(.plain)
-                    Button(action: onTipTap) {
-                        Image(systemName: "lightbulb")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-                .popoverTip(
-                    displayedReplacementTip,
-                    arrowEdge: .top
-                )
-            } else {
-                tagChip
+            Text(tag.canonicalTag)
+                .font(.caption)
+                .foregroundStyle(levelColor)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(levelColor.opacity(0.14))
+                .clipShape(Capsule())
+            if advice.replacementTip != nil {
+                Image(systemName: "lightbulb")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
-    }
-
-    private var tagChip: some View {
-        Text(tag.canonicalTag)
-            .font(.caption)
-            .foregroundStyle(levelColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(levelColor.opacity(0.14))
-            .clipShape(Capsule())
     }
 }
 
