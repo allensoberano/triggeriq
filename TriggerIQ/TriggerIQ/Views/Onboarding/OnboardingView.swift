@@ -3,72 +3,36 @@ import SwiftData
 
 struct OnboardingView: View {
     @Environment(\.modelContext) private var context
-    @State private var page = 0
-    @State private var conditions: String = ""
-    @State private var allergies: String = ""
-    @State private var notificationGranted = false
-    @State private var healthKitGranted = false
-
-    private let notificationService: NotificationPermissionManagerProtocol
-    private let healthKitService: HealthKitServiceProtocol
-
-    init() {
-        notificationService = resolve()
-        healthKitService = resolve()
-    }
+    @StateObject private var vm = OnboardingViewModel()
+    let onComplete: () -> Void
 
     var body: some View {
-        TabView(selection: $page) {
+        TabView(selection: $vm.page) {
             WelcomePage()
                 .tag(0)
-            ConditionsPage(conditions: $conditions, allergies: $allergies)
+            ConditionsPage(conditions: $vm.conditions, allergies: $vm.allergies)
                 .tag(1)
-            NotificationsPage(granted: $notificationGranted,
-                              notificationService: notificationService)
+            NotificationsPage(vm: vm)
                 .tag(2)
-            HealthKitPage(granted: $healthKitGranted,
-                          healthKitService: healthKitService)
+            HealthKitPage(vm: vm)
                 .tag(3)
             ReadyPage()
                 .tag(4)
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
-        .animation(.easeInOut, value: page)
+        .animation(.easeInOut, value: vm.page)
         .overlay(alignment: .bottom) {
             OnboardingNavBar(
-                page: $page,
-                totalPages: 5,
-                onFinish: finish
+                page: $vm.page,
+                totalPages: vm.totalPages,
+                onFinish: {
+                    vm.finish(context: context)
+                    onComplete()
+                }
             )
             .padding(.bottom, 40)
         }
-    }
-
-    private func finish() {
-        let profile = fetchOrCreateProfile()
-        if !conditions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            profile.knownConditions = conditions
-                .split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-        }
-        if !allergies.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            profile.knownAllergies = allergies
-                .split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-        }
-        profile.onboardingCompleted = true
-        try? context.save()
-    }
-
-    private func fetchOrCreateProfile() -> UserProfile {
-        let existing = try? context.fetch(FetchDescriptor<UserProfile>())
-        if let profile = existing?.first { return profile }
-        let profile = UserProfile()
-        context.insert(profile)
-        return profile
     }
 }
 
@@ -137,8 +101,7 @@ private struct ConditionsPage: View {
 }
 
 private struct NotificationsPage: View {
-    @Binding var granted: Bool
-    let notificationService: NotificationPermissionManagerProtocol
+    @ObservedObject var vm: OnboardingViewModel
 
     var body: some View {
         VStack(spacing: 24) {
@@ -149,16 +112,13 @@ private struct NotificationsPage: View {
                 subtitle: "TriggerIQ sends reminders 1 hour and 3 hours after meals so you don't forget to rate your symptoms."
             )
 
-            if granted {
+            if vm.notificationGranted {
                 Label("Notifications enabled", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
                     .font(.subheadline)
             } else {
                 Button {
-                    Task {
-                        try? await notificationService.requestPermissionIfNeeded()
-                        granted = true
-                    }
+                    Task { await vm.requestNotifications() }
                 } label: {
                     Label("Enable Notifications", systemImage: "bell")
                         .frame(maxWidth: .infinity)
@@ -166,7 +126,7 @@ private struct NotificationsPage: View {
                 .buttonStyle(.borderedProminent)
                 .padding(.horizontal, 32)
 
-                Button("Skip for now") { granted = false }
+                Button("Skip for now") { vm.page += 1 }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -177,8 +137,7 @@ private struct NotificationsPage: View {
 }
 
 private struct HealthKitPage: View {
-    @Binding var granted: Bool
-    let healthKitService: HealthKitServiceProtocol
+    @ObservedObject var vm: OnboardingViewModel
 
     var body: some View {
         VStack(spacing: 24) {
@@ -189,16 +148,13 @@ private struct HealthKitPage: View {
                 subtitle: "TriggerIQ reads sleep, HRV, and steps to help understand how lifestyle factors interact with food triggers."
             )
 
-            if granted {
+            if vm.healthKitGranted {
                 Label("HealthKit connected", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
                     .font(.subheadline)
             } else {
                 Button {
-                    Task {
-                        try? await healthKitService.requestAuthorization()
-                        granted = true
-                    }
+                    Task { await vm.requestHealthKit() }
                 } label: {
                     Label("Connect HealthKit", systemImage: "heart.text.square")
                         .frame(maxWidth: .infinity)
@@ -206,7 +162,7 @@ private struct HealthKitPage: View {
                 .buttonStyle(.borderedProminent)
                 .padding(.horizontal, 32)
 
-                Button("Skip for now") { granted = false }
+                Button("Skip for now") { vm.page += 1 }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

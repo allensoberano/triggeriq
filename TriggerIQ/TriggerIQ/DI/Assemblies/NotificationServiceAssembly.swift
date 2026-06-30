@@ -13,6 +13,10 @@ final class NotificationServiceAssembly: Assembly {
             )
         }.inObjectScope(.container)
 
+        container.register(NotificationPermissionManagerProtocol.self) { r in
+            r.resolve(NotificationPermissionManager.self)!
+        }.inObjectScope(.container)
+
         container.register(NotificationSchedulingServiceProtocol.self) { r in
             NotificationSchedulingService(
                 center: r.resolve(NotificationCenterProtocol.self)!
