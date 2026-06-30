@@ -3,6 +3,7 @@ import Foundation
 import UIKit
 @testable import TriggerIQ
 
+@MainActor
 struct PhotoStorageServiceTests {
     // Each test gets a fresh temp directory so files don't bleed between tests
     private func makeService() -> (PhotoStorageService, URL) {

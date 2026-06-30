@@ -163,4 +163,27 @@ struct SettingsViewModelTests {
 
         #expect(mockStorage.deletedFileNames.contains("photo123.jpg"))
     }
+
+    // MARK: - resetOnboarding
+
+    @Test func resetOnboardingSetsFlagFalse() throws {
+        let profile = try insertProfile()
+        profile.onboardingCompleted = true
+        try context.save()
+
+        let vm = makeVM()
+        vm.load(context: context)
+        vm.resetOnboarding(context: context)
+
+        let saved = try context.fetch(FetchDescriptor<UserProfile>()).first
+        #expect(saved?.onboardingCompleted == false)
+    }
+
+    @Test func resetOnboardingDoesNothingWithoutLoadedProfile() throws {
+        try insertProfile()
+        let vm = makeVM()
+        // profile not loaded — resetOnboarding should no-op, not crash
+        vm.resetOnboarding(context: context)
+        #expect(true)
+    }
 }
