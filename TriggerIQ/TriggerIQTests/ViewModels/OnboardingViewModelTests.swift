@@ -49,25 +49,42 @@ struct OnboardingViewModelTests {
         #expect(profile?.onboardingCompleted == true)
     }
 
-    @Test func finishParsesConditions() throws {
+    @Test func finishPersistsSelectedConditions() throws {
         let vm = makeVM()
-        vm.conditions = "IBS, Crohn's, Eczema"
+        vm.selectedConditions = ["IBS", "Eczema"]
         vm.finish(context: context)
         let profile = try context.fetch(FetchDescriptor<UserProfile>()).first
-        #expect(profile?.knownConditions == ["IBS", "Crohn's", "Eczema"])
+        #expect(profile?.knownConditions.sorted() == ["Eczema", "IBS"])
     }
 
-    @Test func finishParsesAllergies() throws {
+    @Test func finishPersistsCustomConditions() throws {
         let vm = makeVM()
-        vm.allergies = "peanuts, gluten"
+        vm.customConditions = "Hashimoto's, SIBO"
         vm.finish(context: context)
         let profile = try context.fetch(FetchDescriptor<UserProfile>()).first
-        #expect(profile?.knownAllergies == ["peanuts", "gluten"])
+        #expect(profile?.knownConditions == ["Hashimoto's", "SIBO"])
     }
 
-    @Test func finishWithEmptyConditionsLeavesArrayEmpty() throws {
+    @Test func finishMergesSelectedAndCustomConditions() throws {
         let vm = makeVM()
-        vm.conditions = ""
+        vm.selectedConditions = ["IBS"]
+        vm.customConditions = "SIBO"
+        vm.finish(context: context)
+        let profile = try context.fetch(FetchDescriptor<UserProfile>()).first
+        #expect(profile?.knownConditions.contains("IBS") == true)
+        #expect(profile?.knownConditions.contains("SIBO") == true)
+    }
+
+    @Test func finishPersistsSelectedAllergies() throws {
+        let vm = makeVM()
+        vm.selectedAllergies = ["Dairy", "Gluten / Wheat"]
+        vm.finish(context: context)
+        let profile = try context.fetch(FetchDescriptor<UserProfile>()).first
+        #expect(profile?.knownAllergies.sorted() == ["Dairy", "Gluten / Wheat"])
+    }
+
+    @Test func finishWithNothingSelectedLeavesArrayEmpty() throws {
+        let vm = makeVM()
         vm.finish(context: context)
         let profile = try context.fetch(FetchDescriptor<UserProfile>()).first
         #expect(profile?.knownConditions.isEmpty == true)
@@ -80,12 +97,21 @@ struct OnboardingViewModelTests {
         try context.save()
 
         let vm = makeVM()
-        vm.conditions = "IBS"
+        vm.selectedConditions = ["IBS"]
         vm.finish(context: context)
 
         let profiles = try context.fetch(FetchDescriptor<UserProfile>())
         #expect(profiles.count == 1)
-        #expect(profiles.first?.knownConditions == ["IBS"])
+        #expect(profiles.first?.knownConditions.contains("IBS") == true)
+    }
+
+    // MARK: - mergedList
+
+    @Test func mergedListDeduplicatesCustomThatMatchesSelected() {
+        let vm = makeVM()
+        let result = vm.mergedList(selected: ["IBS"], custom: "IBS, Eczema")
+        #expect(result.filter { $0 == "IBS" }.count == 1)
+        #expect(result.contains("Eczema") == true)
     }
 
     // MARK: - fetchOrCreateProfile

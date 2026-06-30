@@ -5,14 +5,26 @@ import Combine
 @MainActor
 final class OnboardingViewModel: ObservableObject {
     @Published var page = 0
-    @Published var conditions: String = ""
-    @Published var allergies: String = ""
+    @Published var selectedConditions: Set<String> = []
+    @Published var customConditions: String = ""
+    @Published var selectedAllergies: Set<String> = []
+    @Published var customAllergies: String = ""
     @Published var notificationStepDone = false
     @Published var healthKitStepDone = false
 
     let totalPages = 5
-
     var isLastPage: Bool { page == totalPages - 1 }
+
+    static let presetConditions = [
+        "IBS", "Crohn's Disease", "Ulcerative Colitis", "Celiac Disease",
+        "Eczema", "Psoriasis", "Rheumatoid Arthritis", "Lupus",
+        "Migraines", "Fibromyalgia"
+    ]
+
+    static let presetAllergies = [
+        "Dairy", "Gluten / Wheat", "Peanuts", "Tree Nuts",
+        "Eggs", "Soy", "Shellfish", "Fish", "Sesame"
+    ]
 
     private let notificationService: NotificationPermissionManagerProtocol
     private let healthKitService: HealthKitServiceProtocol
@@ -35,8 +47,8 @@ final class OnboardingViewModel: ObservableObject {
 
     func finish(context: ModelContext) {
         let profile = fetchOrCreateProfile(context: context)
-        profile.knownConditions = parse(conditions)
-        profile.knownAllergies = parse(allergies)
+        profile.knownConditions = mergedList(selected: selectedConditions, custom: customConditions)
+        profile.knownAllergies = mergedList(selected: selectedAllergies, custom: customAllergies)
         profile.onboardingCompleted = true
         try? context.save()
     }
@@ -51,9 +63,11 @@ final class OnboardingViewModel: ObservableObject {
         return profile
     }
 
-    private func parse(_ text: String) -> [String] {
-        text.split(separator: ",")
+    func mergedList(selected: Set<String>, custom: String) -> [String] {
+        let fromCustom = custom
+            .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
+        return Array(selected).sorted() + fromCustom.filter { !selected.contains($0) }
     }
 }

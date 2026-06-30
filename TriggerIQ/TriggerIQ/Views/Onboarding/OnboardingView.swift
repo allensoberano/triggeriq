@@ -10,7 +10,7 @@ struct OnboardingView: View {
         TabView(selection: $vm.page) {
             WelcomePage()
                 .tag(0)
-            ConditionsPage(conditions: $vm.conditions, allergies: $vm.allergies)
+            ConditionsPage(vm: vm)
                 .tag(1)
             NotificationsPage(vm: vm)
                 .tag(2)
@@ -61,41 +61,80 @@ private struct WelcomePage: View {
 }
 
 private struct ConditionsPage: View {
-    @Binding var conditions: String
-    @Binding var allergies: String
+    @ObservedObject var vm: OnboardingViewModel
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 28) {
                 PageHeader(
                     icon: "heart.text.square",
                     title: "About You",
                     subtitle: "This helps personalize your insights. You can skip and update this later in Settings."
                 )
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Known conditions")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    TextField("e.g. IBS, Crohn's, Eczema", text: $conditions, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                    Text("Separate multiple with commas")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                ChecklistSection(
+                    title: "Known conditions",
+                    presets: OnboardingViewModel.presetConditions,
+                    selected: $vm.selectedConditions,
+                    customText: $vm.customConditions,
+                    customPlaceholder: "Other conditions, separated by commas"
+                )
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Known allergies")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    TextField("e.g. peanuts, shellfish, gluten", text: $allergies, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                    Text("Separate multiple with commas")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                ChecklistSection(
+                    title: "Known allergies",
+                    presets: OnboardingViewModel.presetAllergies,
+                    selected: $vm.selectedAllergies,
+                    customText: $vm.customAllergies,
+                    customPlaceholder: "Other allergies, separated by commas"
+                )
             }
-            .padding(32)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+        }
+    }
+}
+
+private struct ChecklistSection: View {
+    let title: String
+    let presets: [String]
+    @Binding var selected: Set<String>
+    @Binding var customText: String
+    let customPlaceholder: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            ForEach(presets, id: \.self) { item in
+                Button {
+                    if selected.contains(item) {
+                        selected.remove(item)
+                    } else {
+                        selected.insert(item)
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: selected.contains(item) ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(selected.contains(item) ? Color.accentColor : Color(.tertiaryLabel))
+                            .font(.title3)
+                        Text(item)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+
+            TextField(customPlaceholder, text: $customText, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .font(.subheadline)
+                .padding(.top, 4)
+            Text("Separate with commas")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }
