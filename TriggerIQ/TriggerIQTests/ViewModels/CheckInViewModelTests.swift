@@ -50,44 +50,62 @@ struct CheckInViewModelTests {
     // MARK: - Save
 
     @Test func savePersistsCheckIn() throws {
-        let vm = makeVM(.oneHour)
+        let meal = makeMeal()
+        context.insert(meal)
+        try context.save()
+
+        let vm = makeVM(.oneHour, meal: meal)
         vm.bloating = 2
         vm.fatigue = 1
         vm.save(context: context)
 
         let results = try context.fetch(FetchDescriptor<CheckIn>())
+            .filter { $0.type == .oneHour && $0.skipped == false }
         #expect(results.count == 1)
         #expect(results.first?.bloating == 2)
         #expect(results.first?.fatigue == 1)
-        #expect(results.first?.skipped == false)
         #expect(results.first?.completedTime != nil)
     }
 
-    @Test func saveSetsIsSaved() {
-        let vm = makeVM(.oneHour)
+    @Test func saveSetsIsSaved() throws {
+        let meal = makeMeal()
+        context.insert(meal)
+        try context.save()
+        let vm = makeVM(.oneHour, meal: meal)
         vm.save(context: context)
         #expect(vm.isSaved == true)
     }
 
     @Test func saveSetsCheckInType() throws {
-        let vm = makeVM(.fourHour)
+        let meal = makeMeal()
+        context.insert(meal)
+        try context.save()
+        let vm = makeVM(.fourHour, meal: meal)
         vm.save(context: context)
-        let result = try context.fetch(FetchDescriptor<CheckIn>()).first!
-        #expect(result.type == .fourHour)
+        let result = try context.fetch(FetchDescriptor<CheckIn>())
+            .first { $0.type == .fourHour && $0.skipped == false }
+        #expect(result?.type == .fourHour)
     }
 
     // MARK: - Skip
 
     @Test func skipPersistsSkippedCheckIn() throws {
-        let vm = makeVM(.nextMorning)
+        let meal = makeMeal()
+        context.insert(meal)
+        try context.save()
+        let vm = makeVM(.nextMorning, meal: meal)
         vm.skip(context: context)
-        let result = try context.fetch(FetchDescriptor<CheckIn>()).first!
-        #expect(result.skipped == true)
-        #expect(result.completedTime == nil)
+        let result = try context.fetch(FetchDescriptor<CheckIn>())
+            .first { $0.type == .nextMorning }
+        #expect(result?.skipped == true)
+        #expect(result?.completedTime == nil)
     }
 
-    @Test func skipSetsIsSaved() {
-        let vm = makeVM(.oneHour)
+    @Test func skipSetsIsSaved() throws {
+        let meal = makeMeal()
+        context.insert(meal)
+        try context.save()
+        let vm = makeVM(.oneHour, meal: meal)
         vm.skip(context: context)
         #expect(vm.isSaved == true)
     }
@@ -102,8 +120,9 @@ struct CheckInViewModelTests {
         let vm = makeVM(.oneHour, meal: meal)
         vm.save(context: context)
 
-        let checkIn = try context.fetch(FetchDescriptor<CheckIn>()).first!
-        #expect(checkIn.meal?.id == meal.id)
+        let checkIn = try context.fetch(FetchDescriptor<CheckIn>())
+            .first { $0.type == .oneHour && $0.skipped == false }
+        #expect(checkIn?.meal?.id == meal.id)
     }
 
     // MARK: - Supersede logic
@@ -189,6 +208,12 @@ struct CheckInViewModelTests {
              rawDescription: "Test", predictedScore: 3.0, aiModelVersion: "stub-1.0")
     }
 
+    // For tests that don't need a meal (titles, initial state)
+    private func makeVM(_ type: CheckInType) -> CheckInViewModel {
+        CheckInViewModel(checkInType: type, schedulingService: MockNotificationSchedulingService())
+    }
+
+    // For tests that need a meal (save, skip, supersede)
     private func makeVM(_ type: CheckInType, meal: Meal) -> CheckInViewModel {
         CheckInViewModel(checkInType: type, mealID: meal.persistentModelID,
                          schedulingService: MockNotificationSchedulingService())
