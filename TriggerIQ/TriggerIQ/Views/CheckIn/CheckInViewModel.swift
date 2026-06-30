@@ -88,7 +88,7 @@ final class CheckInViewModel: ObservableObject {
     var title: String {
         switch checkInType {
         case .oneHour: return "1-Hour Check-in"
-        case .fourHour: return "4-Hour Check-in"
+        case .fourHour: return "3-Hour Check-in"
         case .nextMorning: return "Morning Check-in"
         case .adHoc: return "How Are You Feeling?"
         }
@@ -97,7 +97,7 @@ final class CheckInViewModel: ObservableObject {
     var subtitle: String {
         switch checkInType {
         case .oneHour: return "It's been an hour since your meal. Any symptoms?"
-        case .fourHour: return "4 hours since your meal. How are you feeling?"
+        case .fourHour: return "3 hours since your meal. How are you feeling?"
         case .nextMorning: return "How did you feel overnight and this morning?"
         case .adHoc: return "Rate any symptoms you're experiencing right now."
         }

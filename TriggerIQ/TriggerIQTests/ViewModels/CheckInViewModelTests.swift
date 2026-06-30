@@ -40,7 +40,7 @@ struct CheckInViewModelTests {
     }
 
     @Test func titleForFourHour() {
-        #expect(makeVM(.fourHour).title == "4-Hour Check-in")
+        #expect(makeVM(.fourHour).title == "3-Hour Check-in")
     }
 
     @Test func titleForNextMorning() {
