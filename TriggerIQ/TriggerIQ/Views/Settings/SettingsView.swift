@@ -52,21 +52,12 @@ struct SettingsView: View {
                 }
 
                 // MARK: - Feedback
-                Section {
-                    Button {
-                        showFeedback = true
-                    } label: {
-                        Label("Ask a Question", systemImage: "questionmark.circle")
-                    }
+                Section("Feedback") {
                     Button {
                         showFeedback = true
                     } label: {
                         Label("Submit a Suggestion", systemImage: "lightbulb")
                     }
-                } header: {
-                    Text("Feedback")
-                } footer: {
-                    Text("Opens a form that files a GitHub issue on the TriggerIQ repo.")
                 }
 
                 // MARK: - Data

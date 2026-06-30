@@ -1,22 +1,10 @@
 import Foundation
 
 enum FeedbackType: String, CaseIterable {
-    case question = "question"
     case suggestion = "enhancement"
 
-    var label: String {
-        switch self {
-        case .question:   return "Question"
-        case .suggestion: return "Suggestion"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .question:   return "questionmark.circle"
-        case .suggestion: return "lightbulb"
-        }
-    }
+    var label: String { "Suggestion" }
+    var icon: String  { "lightbulb" }
 }
 
 enum GitHubIssueError: LocalizedError {
