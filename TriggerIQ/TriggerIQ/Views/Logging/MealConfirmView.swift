@@ -48,22 +48,23 @@ struct MealConfirmView: View {
                         let advice = IngredientInflammationAdvisor.advice(for: tag)
                         if let replacementTip = advice.replacementTip {
                             let tipKey = IngredientTipKey(tag: tag)
-                            Button {
-                                if selectedTipKey == tipKey {
-                                    selectedTipKey = nil
-                                    selectedReplacementTip = nil
-                                } else {
-                                    selectedTipKey = tipKey
-                                    selectedReplacementTip = IngredientReplacementTip(
-                                        id: tipKey.id,
-                                        ingredientName: tag.rawName.capitalized,
-                                        detailMessage: replacementTip
-                                    )
+                            FoodTagRow(
+                                tag: tag,
+                                advice: advice,
+                                onTipTap: {
+                                    if selectedTipKey == tipKey {
+                                        selectedTipKey = nil
+                                        selectedReplacementTip = nil
+                                    } else {
+                                        selectedTipKey = tipKey
+                                        selectedReplacementTip = IngredientReplacementTip(
+                                            id: tipKey.id,
+                                            ingredientName: tag.rawName.capitalized,
+                                            detailMessage: replacementTip
+                                        )
+                                    }
                                 }
-                            } label: {
-                                FoodTagRow(tag: tag, advice: advice)
-                            }
-                            .buttonStyle(.plain)
+                            )
                             .popoverTip(
                                 selectedTipKey == tipKey
                                 ? selectedReplacementTip
@@ -149,10 +150,12 @@ private struct ScoreRow: View {
 private struct FoodTagRow: View {
     let tag: ParsedFoodTag
     let advice: IngredientInflammationAdvice
+    let onTipTap: (() -> Void)?
 
-    init(tag: ParsedFoodTag, advice: IngredientInflammationAdvice? = nil) {
+    init(tag: ParsedFoodTag, advice: IngredientInflammationAdvice? = nil, onTipTap: (() -> Void)? = nil) {
         self.tag = tag
         self.advice = advice ?? IngredientInflammationAdvisor.advice(for: tag)
+        self.onTipTap = onTipTap
     }
 
     private var levelColor: Color {
@@ -175,19 +178,31 @@ private struct FoodTagRow: View {
                 }
             }
             Spacer()
-            Text(tag.canonicalTag)
-                .font(.caption)
-                .foregroundStyle(levelColor)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(levelColor.opacity(0.14))
-                .clipShape(Capsule())
-            if advice.replacementTip != nil {
-                Image(systemName: "lightbulb")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            if advice.replacementTip != nil, let onTipTap {
+                Button(action: onTipTap) {
+                    HStack(spacing: 6) {
+                        tagChip
+                        Image(systemName: "lightbulb")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else {
+                tagChip
             }
         }
+    }
+
+    private var tagChip: some View {
+        Text(tag.canonicalTag)
+            .font(.caption)
+            .foregroundStyle(levelColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(levelColor.opacity(0.14))
+            .clipShape(Capsule())
     }
 }
 
