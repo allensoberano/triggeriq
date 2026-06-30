@@ -35,8 +35,12 @@ final class LiveNotificationCenter: NotificationCenterProtocol {
     }
 }
 
+protocol NotificationPermissionManagerProtocol {
+    func requestPermissionIfNeeded() async
+}
+
 @MainActor
-final class NotificationPermissionManager {
+final class NotificationPermissionManager: NotificationPermissionManagerProtocol {
     private let center: NotificationCenterProtocol
 
     init(center: NotificationCenterProtocol = LiveNotificationCenter()) {

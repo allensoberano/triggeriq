@@ -49,7 +49,20 @@ final class Meal {
     }
 }
 
-enum MealType: String, Codable { case breakfast, lunch, dinner, snack }
+enum MealType: String, Codable {
+    case breakfast, lunch, dinner, snack
+
+    static func suggested(for date: Date) -> MealType {
+        let hour = Calendar.current.component(.hour, from: date)
+        switch hour {
+        case 5..<11:  return .breakfast
+        case 11..<15: return .lunch
+        case 15..<18: return .snack
+        case 18..<21: return .dinner
+        default:      return .snack
+        }
+    }
+}
 enum InputMethod: String, Codable { case photo, manualText }
 
 // MARK: - FoodTag

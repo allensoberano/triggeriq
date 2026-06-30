@@ -267,6 +267,51 @@ flowchart LR
 
 ---
 
+## Epic 8 — Onboarding & Settings
+
+```mermaid
+flowchart TD
+    A([App Launch]) --> B[RootView\nfetch UserProfile]
+    B --> C{onboardingCompleted?}
+    C -->|false / missing| D[OnboardingView\nTabView page flow]
+    C -->|true| E[ContentView\n4-tab shell]
+
+    D --> D1[Page 0: Welcome]
+    D1 --> D2[Page 1: Conditions & Allergies\nfree text → knownConditions/knownAllergies]
+    D2 --> D3[Page 2: Notifications\nrequest permission]
+    D3 --> D4[Page 3: HealthKit\nrequest authorization]
+    D4 --> D5[Page 4: Ready\nGet Started → onboardingCompleted = true]
+    D5 --> B
+
+    E --> T1[Today tab]
+    E --> T2[History tab]
+    E --> T3[Insights tab]
+    E --> T4[Settings tab]
+
+    T4 --> S[SettingsView]
+    S --> S1[Edit conditions / allergies]
+    S --> S2[Toggle 1-hr / 3-hr / morning check-ins]
+    S --> S3[Clear All Data\ndeletes meals + photos + patterns + logs]
+```
+
+---
+
+## Epic 8 — Meal Type Preselection
+
+```mermaid
+flowchart TD
+    A([Log Meal tapped]) --> B[LogMealViewModel init]
+    B --> C[MealType.suggested for: Date]
+    C --> D{hour of day}
+    D -->|5–10| E[breakfast]
+    D -->|11–14| F[lunch]
+    D -->|15–17| G[snack]
+    D -->|18–20| H[dinner]
+    D -->|21–4| I[snack]
+```
+
+---
+
 ## Epic 6 — History & Meal Detail
 
 ```mermaid
