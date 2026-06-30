@@ -204,13 +204,14 @@ private struct FlowLayout: View {
         selectedTipKey: Binding<HistoryIngredientTipKey?>,
         selectedReplacementTip: Binding<HistoryIngredientReplacementTip?>
     ) {
+        let advisor = resolve(IngredientInflammationAdvisorProtocol.self)
         self.items = tags.map { tag in
             let parsedTag = ParsedFoodTag(
                 rawName: tag.rawName,
                 canonicalTag: tag.canonicalTag,
                 category: tag.category
             )
-            let advice = resolve(IngredientInflammationAdvisorProtocol.self).advice(for: parsedTag)
+            let advice = advisor.advice(for: parsedTag)
             return HistoryIngredientItem(id: tag.id, tag: tag, advice: advice)
         }
         self._selectedTipKey = selectedTipKey

@@ -180,10 +180,15 @@ struct SettingsViewModelTests {
     }
 
     @Test func resetOnboardingDoesNothingWithoutLoadedProfile() throws {
-        try insertProfile()
+        let profile = try insertProfile()
+        profile.onboardingCompleted = true
+        try context.save()
+
         let vm = makeVM()
-        // profile not loaded — resetOnboarding should no-op, not crash
+        // profile not loaded — resetOnboarding should no-op, flag stays true
         vm.resetOnboarding(context: context)
-        #expect(true)
+
+        let saved = try context.fetch(FetchDescriptor<UserProfile>()).first
+        #expect(saved?.onboardingCompleted == true)
     }
 }

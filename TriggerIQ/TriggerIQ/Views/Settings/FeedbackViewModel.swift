@@ -36,6 +36,7 @@ final class FeedbackViewModel: ObservableObject {
 
     func submit() async {
         guard canSubmit else { return }
+        submitted = false
 
         if isRateLimited {
             errorMessage = "You've submitted 3 suggestions in the last hour. Please try again later."
