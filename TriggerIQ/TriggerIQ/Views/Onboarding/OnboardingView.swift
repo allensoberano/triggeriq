@@ -112,8 +112,8 @@ private struct NotificationsPage: View {
                 subtitle: "TriggerIQ sends reminders 1 hour and 3 hours after meals so you don't forget to rate your symptoms."
             )
 
-            if vm.notificationGranted {
-                Label("Notifications enabled", systemImage: "checkmark.circle.fill")
+            if vm.notificationStepDone {
+                Label("Notification request sent", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
                     .font(.subheadline)
             } else {
@@ -148,8 +148,8 @@ private struct HealthKitPage: View {
                 subtitle: "TriggerIQ reads sleep, HRV, and steps to help understand how lifestyle factors interact with food triggers."
             )
 
-            if vm.healthKitGranted {
-                Label("HealthKit connected", systemImage: "checkmark.circle.fill")
+            if vm.healthKitStepDone {
+                Label("HealthKit request sent", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
                     .font(.subheadline)
             } else {

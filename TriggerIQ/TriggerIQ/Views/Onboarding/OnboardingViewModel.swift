@@ -7,8 +7,8 @@ final class OnboardingViewModel: ObservableObject {
     @Published var page = 0
     @Published var conditions: String = ""
     @Published var allergies: String = ""
-    @Published var notificationGranted = false
-    @Published var healthKitGranted = false
+    @Published var notificationStepDone = false
+    @Published var healthKitStepDone = false
 
     let totalPages = 5
 
@@ -25,11 +25,12 @@ final class OnboardingViewModel: ObservableObject {
 
     func requestNotifications() async {
         try? await notificationService.requestPermissionIfNeeded()
+        notificationStepDone = true
     }
 
     func requestHealthKit() async {
         try? await healthKitService.requestAuthorization()
-        healthKitGranted = true
+        healthKitStepDone = true
     }
 
     func finish(context: ModelContext) {
