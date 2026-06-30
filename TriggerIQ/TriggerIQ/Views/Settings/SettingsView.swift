@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var vm = SettingsViewModel()
     @State private var showClearConfirm = false
+    @State private var showFeedback = false
 
     var body: some View {
         NavigationStack {
@@ -50,6 +51,15 @@ struct SettingsView: View {
                     Text("Disabling a check-in type stops future notifications for that window. Past data is kept.")
                 }
 
+                // MARK: - Feedback
+                Section("Feedback") {
+                    Button {
+                        showFeedback = true
+                    } label: {
+                        Label("Submit a Suggestion", systemImage: "lightbulb")
+                    }
+                }
+
                 // MARK: - Data
                 Section("Data") {
                     Button(role: .destructive) {
@@ -61,6 +71,9 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .task { vm.load(context: context) }
+            .sheet(isPresented: $showFeedback) {
+                FeedbackView()
+            }
             .confirmationDialog(
                 "Clear all data?",
                 isPresented: $showClearConfirm,
