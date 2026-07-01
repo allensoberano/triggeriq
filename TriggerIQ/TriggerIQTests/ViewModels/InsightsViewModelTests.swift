@@ -174,6 +174,14 @@ struct InsightsViewModelTests {
         #expect(result[1].mealType == points[1].mealType)
     }
 
+    @Test func rollingAveragedPreservesId() {
+        let points = makePoints([1, 2, 3])
+        let result = points.rollingAveraged(windowSize: 5)
+        for index in points.indices {
+            #expect(result[index].id == points[index].id)
+        }
+    }
+
     @Test func rollingAveragedSmoothsSingleOutlier() {
         let points = makePoints([2, 2, 2, 10, 2])
         let result = points.rollingAveraged(windowSize: 5)
