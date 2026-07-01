@@ -173,6 +173,33 @@ struct AnalysisServiceTests {
         #expect(result.predictedScore == 5.0)
     }
 
+    @Test func reanalyzePreservesUserEditedDescriptionEvenWhenAIParaphrasesIt() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // The AI may return its own paraphrase of the description — reanalyze should keep
+        // the user's exact edited text and only refresh score/tags/portion.
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "AI's paraphrased description",
+            predictedScore: 7.0,
+            foodTags: [ParsedFoodTag(rawName: "salmon", canonicalTag: "fish", category: "protein")],
+            portionEstimate: "large",
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "User's exact edited text")
+
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "User's exact edited text")
+        #expect(result.predictedScore == 7.0)
+        #expect(result.foodTags.first?.rawName == "salmon")
+        #expect(result.portionEstimate == "large")
+    }
+
     @Test func reanalyzeIgnoresBlankDescription() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()

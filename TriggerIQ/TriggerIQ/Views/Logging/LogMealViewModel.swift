@@ -93,6 +93,11 @@ final class LogMealViewModel: ObservableObject {
     /// Re-runs analysis on a user-edited description so a corrected detail can be reflected
     /// in the predicted score and detected ingredients before saving. Works regardless of
     /// whether the original description came from a photo or manual text entry.
+    ///
+    /// The description the user typed is preserved as-is — only the score, food tags, and
+    /// portion estimate are refreshed from the new analysis. The AI may return its own
+    /// paraphrased description, which we intentionally discard so the user's edit isn't
+    /// silently overwritten.
     func reanalyze(description: String) async {
         let trimmed = description.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -100,7 +105,14 @@ final class LogMealViewModel: ObservableObject {
         defer { isReanalyzing = false }
         do {
             let result = try await analysisService.analyze(text: trimmed)
-            setConfirmStep(result)
+            let resultWithEditedDescription = AnalysisResult(
+                rawDescription: trimmed,
+                predictedScore: result.predictedScore,
+                foodTags: result.foodTags,
+                portionEstimate: result.portionEstimate,
+                modelVersion: result.modelVersion
+            )
+            setConfirmStep(resultWithEditedDescription)
         } catch {
             step = .error(error.localizedDescription)
         }
