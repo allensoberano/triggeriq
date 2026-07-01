@@ -99,10 +99,13 @@ flowchart TD
     C -->|photo| D[PhotosPicker\nload image data]
     C -->|text| E[Manual text entry]
     D --> F[AnalysisService\nanalyze imageData]
-    E --> G[AnalysisService\nanalyze text]
+    E --> G[AnalysisService\nanalyze text\ndescription kept as user typed it]
     F --> H[AnalysisResult]
     G --> H
-    H --> I[MealConfirmView\nreview + edit]
+    H --> I[MealConfirmView\nreview + edit description]
+    I -->|Edit description +\nReanalyze| G2[LogMealViewModel.reanalyze\nanalyze text with edited description]
+    G2 --> H2[AnalysisResult\nscore + tags refreshed\ndescription kept as user edited it]
+    H2 --> I
     I -->|Save| J[Create Meal + FoodTags\ninsert into ModelContext]
     J --> K[NotificationSchedulingService\nscheduleCheckIns]
     K --> L[Sheet dismisses]
@@ -180,10 +183,17 @@ flowchart TD
     J -->|missing| L[StubAnalysisService\nfallback]
 
     K --> M[Strip markdown fences\nparse JSON response]
-    M --> N[AnalysisResult\ndescription + score + tags]
+    M --> N[AnalysisResult]
     L --> N
-
-    N --> O[MealConfirmView]
+    N --> N2{Input type}
+    N2 -->|Camera/Library| N3[description = AI response]
+    N2 -->|Text| N4[description = user's typed text\nAI description discarded]
+    N3 --> O[MealConfirmView]
+    N4 --> O
+    O -->|Edit description +\nReanalyze| H2[LiveAnalysisService\nanalyze text with edited description]
+    H2 --> I2[AnthropicClient\nPOST /v1/messages]
+    I2 --> M2[Parse response\nscore + tags refreshed\ndescription = user's edited text]
+    M2 --> O
     O -->|Save| P[PhotoStorageService\nsave JPEG to app sandbox]
     P --> Q[meal.photoFileName set\nphotoExpiryDate = +14 days]
     Q --> R[Meal inserted to SwiftData]
