@@ -122,9 +122,24 @@ private struct StatTile: View {
 private struct ScoreTrendChart: View {
     let points: [ScorePoint]
 
+    /// Number of trailing meals averaged together to smooth out the trend line.
+    private static let rollingWindowSize = 5
+
     private var avgScore: Double {
         guard !points.isEmpty else { return 0 }
         return points.map(\.score).reduce(0, +) / Double(points.count)
+    }
+
+    /// Rolling average of the trailing `rollingWindowSize` meals, so the chart
+    /// shows a smoothed trend rather than each individual meal's score.
+    private var rollingPoints: [ScorePoint] {
+        guard !points.isEmpty else { return [] }
+        return points.indices.map { index in
+            let start = max(0, index - Self.rollingWindowSize + 1)
+            let window = points[start...index]
+            let avg = window.map(\.score).reduce(0, +) / Double(window.count)
+            return ScorePoint(date: points[index].date, score: avg, mealType: points[index].mealType)
+        }
     }
 
     private func color(for score: Double) -> Color {
@@ -154,7 +169,7 @@ private struct ScoreTrendChart: View {
                     .foregroundStyle(.secondary.opacity(0.4))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4]))
 
-                ForEach(points) { point in
+                ForEach(rollingPoints) { point in
                     LineMark(
                         x: .value("Date", point.date),
                         y: .value("Score", point.score)
