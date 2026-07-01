@@ -9,6 +9,20 @@ struct ScorePoint: Identifiable {
     let mealType: MealType
 }
 
+extension Array where Element == ScorePoint {
+    /// Returns a smoothed series where each point's score is the average of
+    /// itself and up to `windowSize - 1` preceding points (a trailing rolling average).
+    func rollingAveraged(windowSize: Int) -> [ScorePoint] {
+        guard !isEmpty, windowSize > 0 else { return self }
+        return indices.map { index in
+            let start = Swift.max(0, index - windowSize + 1)
+            let window = self[start...index]
+            let avg = window.map(\.score).reduce(0, +) / Double(window.count)
+            return ScorePoint(date: self[index].date, score: avg, mealType: self[index].mealType)
+        }
+    }
+}
+
 @MainActor
 final class InsightsViewModel: ObservableObject {
     @Published var scorePoints: [ScorePoint] = []

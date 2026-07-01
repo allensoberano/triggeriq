@@ -219,7 +219,8 @@ flowchart TD
     C --> D[Fetch all Meals\nsorted chronologically]
     C --> E[Fetch SuspectFoodPatterns\nsorted by avgSymptomSeverity desc]
     D --> F[ScorePoint array\ndate + predictedScore + mealType]
-    F --> G[ScoreTrendChart\nSwift Charts line + scatter\nbaseline rule mark]
+    F --> G0[rollingAveraged\ntrailing 5-point window]
+    G0 --> G[ScoreTrendChart\nSwift Charts line + scatter\nbaseline rule mark]
     E --> H{patterns empty?}
     H -->|yes| I[PatternsInsufficientDataView]
     H -->|no| J[FoodPatternRow list\ntop 10 patterns]

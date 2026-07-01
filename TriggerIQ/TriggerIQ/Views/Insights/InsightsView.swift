@@ -133,13 +133,7 @@ private struct ScoreTrendChart: View {
     /// Rolling average of the trailing `rollingWindowSize` meals, so the chart
     /// shows a smoothed trend rather than each individual meal's score.
     private var rollingPoints: [ScorePoint] {
-        guard !points.isEmpty else { return [] }
-        return points.indices.map { index in
-            let start = max(0, index - Self.rollingWindowSize + 1)
-            let window = points[start...index]
-            let avg = window.map(\.score).reduce(0, +) / Double(window.count)
-            return ScorePoint(date: points[index].date, score: avg, mealType: points[index].mealType)
-        }
+        points.rollingAveraged(windowSize: Self.rollingWindowSize)
     }
 
     private func color(for score: Double) -> Color {
