@@ -143,6 +143,7 @@ struct InsightsViewModelTests {
 
         let (vm, _) = makeVM()
         vm.load(context: context)
+        #expect(vm.mealCount == 0)
         #expect(vm.stoolPoints.count == 2)
         #expect(vm.stoolPoints.first?.value == 4)
         #expect(vm.stoolPoints.last?.value == 2)
@@ -155,6 +156,7 @@ struct InsightsViewModelTests {
 
         let (vm, _) = makeVM()
         vm.load(context: context)
+        #expect(vm.mealCount == 0)
         #expect(vm.hydrationPoints.count == 2)
         #expect(vm.hydrationPoints.first?.value == 1)
         #expect(vm.hydrationPoints.last?.value == 6)
