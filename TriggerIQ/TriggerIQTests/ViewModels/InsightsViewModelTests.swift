@@ -122,6 +122,74 @@ struct InsightsViewModelTests {
         #expect(vm.scorePoints.last?.score == 8.0)
     }
 
+    // MARK: - hydration & stool trends
+
+    private func insertBowelMovement(scale: Int, daysAgo: Double = 0) -> BowelMovementEntry {
+        let entry = BowelMovementEntry(timestamp: Date().addingTimeInterval(-daysAgo * 86400), bristolScale: scale)
+        context.insert(entry)
+        return entry
+    }
+
+    private func insertHydration(colorScale: Int, daysAgo: Double = 0) -> HydrationEntry {
+        let entry = HydrationEntry(timestamp: Date().addingTimeInterval(-daysAgo * 86400), colorScale: colorScale)
+        context.insert(entry)
+        return entry
+    }
+
+    @Test func loadPopulatesStoolPoints() throws {
+        _ = insertBowelMovement(scale: 4, daysAgo: 1)
+        _ = insertBowelMovement(scale: 2, daysAgo: 0)
+        try context.save()
+
+        let (vm, _) = makeVM()
+        vm.load(context: context)
+        #expect(vm.stoolPoints.count == 2)
+        #expect(vm.stoolPoints.first?.value == 4)
+        #expect(vm.stoolPoints.last?.value == 2)
+    }
+
+    @Test func loadPopulatesHydrationPoints() throws {
+        _ = insertHydration(colorScale: 1, daysAgo: 1)
+        _ = insertHydration(colorScale: 6, daysAgo: 0)
+        try context.save()
+
+        let (vm, _) = makeVM()
+        vm.load(context: context)
+        #expect(vm.hydrationPoints.count == 2)
+        #expect(vm.hydrationPoints.first?.value == 1)
+        #expect(vm.hydrationPoints.last?.value == 6)
+    }
+
+    @Test func stoolRollingAverageUsesLastFiveLogs() throws {
+        // 6 entries, oldest to newest: 1,2,3,4,5,6
+        for (i, scale) in [1, 2, 3, 4, 5, 6].enumerated() {
+            _ = insertBowelMovement(scale: scale, daysAgo: Double(5 - i))
+        }
+        try context.save()
+
+        let (vm, _) = makeVM()
+        vm.load(context: context)
+        #expect(vm.stoolPoints.count == 6)
+        // First point: only itself in window -> avg == 1
+        #expect(vm.stoolPoints[0].rollingAverage == 1)
+        // Last point: average of last 5 logs (2,3,4,5,6) == 4
+        #expect(vm.stoolPoints[5].rollingAverage == 4)
+    }
+
+    @Test func hydrationRollingAverageUsesLastFiveLogs() throws {
+        for (i, scale) in [8, 7, 6, 5, 4, 3].enumerated() {
+            _ = insertHydration(colorScale: scale, daysAgo: Double(5 - i))
+        }
+        try context.save()
+
+        let (vm, _) = makeVM()
+        vm.load(context: context)
+        #expect(vm.hydrationPoints.count == 6)
+        #expect(vm.hydrationPoints[0].rollingAverage == 8)
+        // Last point: average of last 5 logs (7,6,5,4,3) == 5
+        #expect(vm.hydrationPoints[5].rollingAverage == 5)
+    }
+
     // MARK: - recomputePatterns
 
     @Test func recomputeCallsPatternEngine() {
