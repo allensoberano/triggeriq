@@ -19,6 +19,10 @@ final class LogMealViewModel: ObservableObject {
     @Published var manualText: String = ""
     @Published var mealType: MealType = MealType.suggested(for: Date())
     @Published var isSaved = false
+    @Published var isReanalyzing = false
+    // Changes every time a new analysis result is produced (initial or reanalyze) so the
+    // confirm screen resets its @State (description/food tags) instead of keeping stale values.
+    @Published private(set) var confirmToken = UUID()
 
     private let analysisService: AnalysisServiceProtocol
     private let schedulingService: NotificationSchedulingServiceProtocol
@@ -37,12 +41,17 @@ final class LogMealViewModel: ObservableObject {
         self.photoStorage = photoStorage ?? resolve()
     }
 
+    private func setConfirmStep(_ result: AnalysisResult) {
+        confirmToken = UUID()
+        step = .confirm(result)
+    }
+
     func analyzeCapturedPhoto(_ jpegData: Data) async {
         pendingPhotoData = jpegData
         step = .analyzing
         do {
             let result = try await analysisService.analyze(imageData: jpegData)
-            step = .confirm(result)
+            setConfirmStep(result)
         } catch {
             pendingPhotoData = nil
             step = .error(error.localizedDescription)
@@ -64,18 +73,57 @@ final class LogMealViewModel: ObservableObject {
                 jpegData = data
             }
             let result = try await analysisService.analyze(imageData: jpegData)
-            step = .confirm(result)
+            setConfirmStep(result)
         } catch {
             step = .error(error.localizedDescription)
         }
     }
 
     func analyzeText() async {
-        guard !manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let trimmed = manualText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
         step = .analyzing
         do {
             let result = try await analysisService.analyze(text: manualText)
-            step = .confirm(result)
+            // Keep the user's own manually-typed description rather than any AI paraphrase —
+            // only photo analysis should have the description come from the AI, since there's
+            // no user-authored text to preserve in that case.
+            let resultWithManualDescription = AnalysisResult(
+                rawDescription: trimmed,
+                predictedScore: result.predictedScore,
+                foodTags: result.foodTags,
+                portionEstimate: result.portionEstimate,
+                modelVersion: result.modelVersion
+            )
+            setConfirmStep(resultWithManualDescription)
+        } catch {
+            step = .error(error.localizedDescription)
+        }
+    }
+
+    /// Re-runs analysis on a user-edited description so a corrected detail can be reflected
+    /// in the predicted score and detected ingredients before saving. Works regardless of
+    /// whether the original description came from a photo or manual text entry.
+    ///
+    /// The description the user typed is preserved as-is — only the score, food tags, and
+    /// portion estimate are refreshed from the new analysis. The AI may return its own
+    /// paraphrased description, which we intentionally discard so the user's edit isn't
+    /// silently overwritten.
+    func reanalyze(description: String) async {
+        let trimmed = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        isReanalyzing = true
+        defer { isReanalyzing = false }
+        do {
+            let result = try await analysisService.analyze(text: trimmed)
+            let resultWithEditedDescription = AnalysisResult(
+                rawDescription: trimmed,
+                predictedScore: result.predictedScore,
+                foodTags: result.foodTags,
+                portionEstimate: result.portionEstimate,
+                modelVersion: result.modelVersion
+            )
+            setConfirmStep(resultWithEditedDescription)
         } catch {
             step = .error(error.localizedDescription)
         }

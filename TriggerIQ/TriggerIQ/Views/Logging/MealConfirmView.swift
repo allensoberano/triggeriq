@@ -20,6 +20,14 @@ struct MealConfirmView: View {
         self._foodTags = State(initialValue: result.foodTags)
     }
 
+    private var trimmedEditedDescription: String {
+        editedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var hasDescriptionChanged: Bool {
+        trimmedEditedDescription != result.rawDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     var body: some View {
         List {
             Section("Meal type") {
@@ -36,6 +44,23 @@ struct MealConfirmView: View {
             Section("Description") {
                 TextField("What did you eat?", text: $editedDescription, axis: .vertical)
                     .lineLimit(3...8)
+
+                if hasDescriptionChanged {
+                    Button {
+                        Task { await vm.reanalyze(description: editedDescription) }
+                    } label: {
+                        if vm.isReanalyzing {
+                            HStack {
+                                ProgressView()
+                                Text("Reanalyzing…")
+                            }
+                        } else {
+                            Label("Reanalyze with edited description", systemImage: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(vm.isReanalyzing || trimmedEditedDescription.isEmpty)
+                    .accessibilityIdentifier("reanalyzeButton")
+                }
             }
 
             Section("Inflammation score") {

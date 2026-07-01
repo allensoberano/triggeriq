@@ -149,6 +149,163 @@ struct AnalysisServiceTests {
         #expect(meal.foodTags.count == 1)
     }
 
+    @Test func reanalyzeWithValidDescriptionUpdatesStepWithNewResult() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "Corrected description",
+            predictedScore: 5.0,
+            foodTags: [ParsedFoodTag(rawName: "salmon", canonicalTag: "fish", category: "protein")],
+            portionEstimate: "large",
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "Corrected description")
+
+        #expect(mockAnalysis.analyzeTextCalled == true)
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "Corrected description")
+        #expect(result.predictedScore == 5.0)
+    }
+
+    @Test func reanalyzePreservesUserEditedDescriptionEvenWhenAIParaphrasesIt() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // The AI may return its own paraphrase of the description — reanalyze should keep
+        // the user's exact edited text and only refresh score/tags/portion.
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "AI's paraphrased description",
+            predictedScore: 7.0,
+            foodTags: [ParsedFoodTag(rawName: "salmon", canonicalTag: "fish", category: "protein")],
+            portionEstimate: "large",
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "User's exact edited text")
+
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "User's exact edited text")
+        #expect(result.predictedScore == 7.0)
+        #expect(result.foodTags.first?.rawName == "salmon")
+        #expect(result.portionEstimate == "large")
+    }
+
+    @Test func analyzeTextPreservesUserTypedDescriptionEvenWhenAIParaphrasesIt() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // Only photo analysis should let the AI's description win — manual entry should
+        // always keep exactly what the user typed, even on the very first analysis.
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "AI's paraphrased description",
+            predictedScore: 4.0,
+            foodTags: [ParsedFoodTag(rawName: "chicken", canonicalTag: "poultry", category: "protein")],
+            portionEstimate: "medium",
+            modelVersion: "mock-1.0"
+        )
+
+        vm.manualText = "grilled chicken with rice"
+        await vm.analyzeText()
+
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after analysis")
+            return
+        }
+        #expect(result.rawDescription == "grilled chicken with rice")
+        #expect(result.predictedScore == 4.0)
+    }
+
+    @Test func reanalyzeIgnoresBlankDescription() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        await vm.reanalyze(description: "   ")
+
+        #expect(mockAnalysis.analyzeTextCalled == false)
+    }
+
+    @Test func reanalyzeSetsErrorStepOnFailure() async throws {
+        let mockAnalysis = MockAnalysisService()
+        mockAnalysis.shouldThrow = true
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        await vm.reanalyze(description: "Something new")
+
+        guard case .error = vm.step else {
+            Issue.record("Expected error step after failed reanalysis")
+            return
+        }
+    }
+
+    @Test func reanalyzeChangesConfirmTokenAfterInitialManualTextAnalysis() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // Simulate the manual-entry flow reaching the confirm step first.
+        vm.manualText = "grilled chicken"
+        await vm.analyzeText()
+        let tokenAfterInitialAnalysis = vm.confirmToken
+
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "grilled chicken with rice",
+            predictedScore: 4.0,
+            foodTags: [ParsedFoodTag(rawName: "rice", canonicalTag: "grain", category: "carb")],
+            portionEstimate: nil,
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "grilled chicken with rice")
+
+        #expect(vm.confirmToken != tokenAfterInitialAnalysis)
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "grilled chicken with rice")
+    }
+
+    @Test func reanalyzeChangesConfirmTokenAfterInitialPhotoAnalysis() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // Simulate the photo flow reaching the confirm step first.
+        await vm.analyzeCapturedPhoto(Data(repeating: 0, count: 10))
+        let tokenAfterInitialAnalysis = vm.confirmToken
+
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "Corrected photo description",
+            predictedScore: 6.0,
+            foodTags: [ParsedFoodTag(rawName: "kale", canonicalTag: "leafy greens", category: "vegetable")],
+            portionEstimate: nil,
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "Corrected photo description")
+
+        #expect(vm.confirmToken != tokenAfterInitialAnalysis)
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "Corrected photo description")
+        #expect(result.foodTags.first?.rawName == "kale")
+    }
+
     @Test func saveTriggersCheckInScheduling() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()
