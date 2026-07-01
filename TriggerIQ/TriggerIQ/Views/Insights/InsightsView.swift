@@ -9,7 +9,7 @@ struct InsightsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if vm.mealCount == 0 {
+                if vm.mealCount == 0 && vm.hydrationPoints.isEmpty && vm.stoolPoints.isEmpty {
                     InsightsEmptyView()
                 } else {
                     List {
