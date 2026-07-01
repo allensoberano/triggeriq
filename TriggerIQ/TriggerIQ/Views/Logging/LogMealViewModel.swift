@@ -80,11 +80,22 @@ final class LogMealViewModel: ObservableObject {
     }
 
     func analyzeText() async {
-        guard !manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let trimmed = manualText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
         step = .analyzing
         do {
             let result = try await analysisService.analyze(text: manualText)
-            setConfirmStep(result)
+            // Keep the user's own manually-typed description rather than any AI paraphrase —
+            // only photo analysis should have the description come from the AI, since there's
+            // no user-authored text to preserve in that case.
+            let resultWithManualDescription = AnalysisResult(
+                rawDescription: trimmed,
+                predictedScore: result.predictedScore,
+                foodTags: result.foodTags,
+                portionEstimate: result.portionEstimate,
+                modelVersion: result.modelVersion
+            )
+            setConfirmStep(resultWithManualDescription)
         } catch {
             step = .error(error.localizedDescription)
         }

@@ -200,6 +200,32 @@ struct AnalysisServiceTests {
         #expect(result.portionEstimate == "large")
     }
 
+    @Test func analyzeTextPreservesUserTypedDescriptionEvenWhenAIParaphrasesIt() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // Only photo analysis should let the AI's description win — manual entry should
+        // always keep exactly what the user typed, even on the very first analysis.
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "AI's paraphrased description",
+            predictedScore: 4.0,
+            foodTags: [ParsedFoodTag(rawName: "chicken", canonicalTag: "poultry", category: "protein")],
+            portionEstimate: "medium",
+            modelVersion: "mock-1.0"
+        )
+
+        vm.manualText = "grilled chicken with rice"
+        await vm.analyzeText()
+
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after analysis")
+            return
+        }
+        #expect(result.rawDescription == "grilled chicken with rice")
+        #expect(result.predictedScore == 4.0)
+    }
+
     @Test func reanalyzeIgnoresBlankDescription() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()
