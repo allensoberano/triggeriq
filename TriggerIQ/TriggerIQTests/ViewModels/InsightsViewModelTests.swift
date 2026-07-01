@@ -208,4 +208,54 @@ struct InsightsViewModelTests {
         #expect(mock.recomputeCalled == true)
         #expect(vm.mealCount == 1)
     }
+
+    // MARK: - rollingAveraged
+
+    private func makePoints(_ scores: [Double]) -> [ScorePoint] {
+        scores.enumerated().map { index, score in
+            ScorePoint(date: Date().addingTimeInterval(Double(index) * 3600), score: score, mealType: .lunch)
+        }
+    }
+
+    @Test func rollingAveragedReturnsEmptyForEmptyInput() {
+        let result: [ScorePoint] = [].rollingAveraged(windowSize: 5)
+        #expect(result.isEmpty)
+    }
+
+    @Test func rollingAveragedAveragesFullWindowWhenEnoughPoints() {
+        let points = makePoints([1, 2, 3, 4, 5, 6])
+        let result = points.rollingAveraged(windowSize: 5)
+        // Last point averages the trailing 5: (2+3+4+5+6)/5 = 4.0
+        #expect(result.last?.score == 4.0)
+    }
+
+    @Test func rollingAveragedUsesPartialWindowNearStart() {
+        let points = makePoints([2, 4, 6])
+        let result = points.rollingAveraged(windowSize: 5)
+        #expect(result[0].score == 2.0)
+        #expect(result[1].score == 3.0)
+        #expect(result[2].score == 4.0)
+    }
+
+    @Test func rollingAveragedPreservesDateAndMealType() {
+        let points = makePoints([1, 2, 3])
+        let result = points.rollingAveraged(windowSize: 5)
+        #expect(result[1].date == points[1].date)
+        #expect(result[1].mealType == points[1].mealType)
+    }
+
+    @Test func rollingAveragedPreservesId() {
+        let points = makePoints([1, 2, 3])
+        let result = points.rollingAveraged(windowSize: 5)
+        for index in points.indices {
+            #expect(result[index].id == points[index].id)
+        }
+    }
+
+    @Test func rollingAveragedSmoothsSingleOutlier() {
+        let points = makePoints([2, 2, 2, 10, 2])
+        let result = points.rollingAveraged(windowSize: 5)
+        // The outlier point itself (index 3) should be smoothed by averaging the trailing window.
+        #expect(result[3].score == 4.0)
+    }
 }

@@ -3,10 +3,31 @@ import SwiftData
 import Combine
 
 struct ScorePoint: Identifiable {
-    let id = UUID()
+    let id: UUID
     let date: Date
     let score: Double
     let mealType: MealType
+
+    init(id: UUID = UUID(), date: Date, score: Double, mealType: MealType) {
+        self.id = id
+        self.date = date
+        self.score = score
+        self.mealType = mealType
+    }
+}
+
+extension Array where Element == ScorePoint {
+    /// Returns a smoothed series where each point's score is the average of
+    /// itself and up to `windowSize - 1` preceding points (a trailing rolling average).
+    func rollingAveraged(windowSize: Int) -> [ScorePoint] {
+        guard !isEmpty, windowSize > 0 else { return self }
+        return indices.map { index in
+            let start = Swift.max(0, index - windowSize + 1)
+            let window = self[start...index]
+            let avg = window.map(\.score).reduce(0, +) / Double(window.count)
+            return ScorePoint(id: self[index].id, date: self[index].date, score: avg, mealType: self[index].mealType)
+        }
+    }
 }
 
 struct TrendPoint: Identifiable {
