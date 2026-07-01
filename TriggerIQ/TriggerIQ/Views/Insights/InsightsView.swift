@@ -9,7 +9,7 @@ struct InsightsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if vm.mealCount == 0 {
+                if vm.mealCount == 0 && vm.hydrationPoints.isEmpty && vm.stoolPoints.isEmpty {
                     InsightsEmptyView()
                 } else {
                     List {
@@ -25,6 +25,22 @@ struct InsightsView: View {
                             ScoreTrendChart(points: vm.scorePoints)
                                 .frame(height: 200)
                                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                        }
+
+                        if !vm.hydrationPoints.isEmpty {
+                            Section("Hydration Average") {
+                                HydrationTrendChart(points: vm.hydrationPoints)
+                                    .frame(height: 200)
+                                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                            }
+                        }
+
+                        if !vm.stoolPoints.isEmpty {
+                            Section("Stool Average") {
+                                StoolTrendChart(points: vm.stoolPoints)
+                                    .frame(height: 200)
+                                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                            }
                         }
 
                         if !vm.patterns.isEmpty {
@@ -182,6 +198,174 @@ private struct ScoreTrendChart: View {
             .chartYScale(domain: 0...10)
             .chartYAxis {
                 AxisMarks(values: [0, 2.5, 5, 7.5, 10]) { val in
+                    AxisGridLine()
+                    AxisValueLabel()
+                }
+            }
+            .chartXAxis {
+                AxisMarks(values: .stride(by: .day, count: max(1, points.count / 5))) { _ in
+                    AxisValueLabel(format: .dateTime.month().day())
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Hydration Trend Chart
+
+private struct HydrationTrendChart: View {
+    let points: [TrendPoint]
+
+    private var avgValue: Double {
+        guard !points.isEmpty else { return 0 }
+        return points.map(\.value).reduce(0, +) / Double(points.count)
+    }
+
+    private func color(for level: Double) -> Color {
+        switch level {
+        case ..<3:  return .yellow
+        case ..<6:  return .orange
+        default:    return .brown
+        }
+    }
+
+    private func label(for level: Double) -> String {
+        switch level {
+        case ..<3:  return "Well hydrated"
+        case ..<6:  return "Mild dehydration"
+        default:    return "Dehydrated"
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("Avg urine color")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(label(for: avgValue))
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(color(for: avgValue))
+            }
+
+            Chart {
+                if let startDate = points.first?.date, let endDate = points.last?.date {
+                    RectangleMark(
+                        xStart: .value("Start", startDate),
+                        xEnd: .value("End", endDate),
+                        yStart: .value("Recommended min", 1),
+                        yEnd: .value("Recommended max", 3)
+                    )
+                    .foregroundStyle(Color.green.opacity(0.12))
+                }
+
+                ForEach(points) { point in
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Rolling avg", point.rollingAverage)
+                    )
+                    .foregroundStyle(Color.accentColor.opacity(0.7))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .interpolationMethod(.catmullRom)
+
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Color scale", point.value)
+                    )
+                    .foregroundStyle(color(for: point.value))
+                    .symbolSize(30)
+                }
+            }
+            .chartYScale(domain: 1...8)
+            .chartYAxis {
+                AxisMarks(values: [1, 2, 3, 4, 5, 6, 7, 8]) { _ in
+                    AxisGridLine()
+                    AxisValueLabel()
+                }
+            }
+            .chartXAxis {
+                AxisMarks(values: .stride(by: .day, count: max(1, points.count / 5))) { _ in
+                    AxisValueLabel(format: .dateTime.month().day())
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Stool Trend Chart
+
+private struct StoolTrendChart: View {
+    let points: [TrendPoint]
+
+    private var avgValue: Double {
+        guard !points.isEmpty else { return 0 }
+        return points.map(\.value).reduce(0, +) / Double(points.count)
+    }
+
+    private func color(for scale: Double) -> Color {
+        switch scale {
+        case ..<2.5:  return .orange
+        case ..<4.5:  return .green
+        case ..<5.5:  return .yellow
+        default:      return .red
+        }
+    }
+
+    private func label(for scale: Double) -> String {
+        switch scale {
+        case ..<2.5:  return "Constipated"
+        case ..<4.5:  return "Regular"
+        case ..<5.5:  return "Lacking fiber"
+        default:      return "Diarrhea"
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("Avg Bristol scale")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(label(for: avgValue))
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(color(for: avgValue))
+            }
+
+            Chart {
+                if let startDate = points.first?.date, let endDate = points.last?.date {
+                    RectangleMark(
+                        xStart: .value("Start", startDate),
+                        xEnd: .value("End", endDate),
+                        yStart: .value("Recommended min", 3),
+                        yEnd: .value("Recommended max", 4)
+                    )
+                    .foregroundStyle(Color.green.opacity(0.12))
+                }
+
+                ForEach(points) { point in
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Rolling avg", point.rollingAverage)
+                    )
+                    .foregroundStyle(Color.accentColor.opacity(0.7))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .interpolationMethod(.catmullRom)
+
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Bristol scale", point.value)
+                    )
+                    .foregroundStyle(color(for: point.value))
+                    .symbolSize(30)
+                }
+            }
+            .chartYScale(domain: 1...7)
+            .chartYAxis {
+                AxisMarks(values: [1, 2, 3, 4, 5, 6, 7]) { _ in
                     AxisGridLine()
                     AxisValueLabel()
                 }

@@ -221,6 +221,9 @@ flowchart TD
     D --> F[ScorePoint array\ndate + predictedScore + mealType]
     F --> G0[rollingAveraged\ntrailing 5-point window]
     G0 --> G[ScoreTrendChart\nSwift Charts line + scatter\nbaseline rule mark]
+    C --> D2[Fetch BowelMovementEntry\nand HydrationEntry\nsorted chronologically]
+    D2 --> F2[TrendPoint arrays\nvalue + rolling avg\nof last 5 logs]
+    F2 --> G2[StoolTrendChart /\nHydrationTrendChart\nscatter + dotted smoothed line]
     E --> H{patterns empty?}
     H -->|yes| I[PatternsInsufficientDataView]
     H -->|no| J[FoodPatternRow list\ntop 10 patterns]
