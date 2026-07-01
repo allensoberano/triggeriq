@@ -1,6 +1,10 @@
 import SwiftUI
 import SwiftData
 
+private extension Color {
+    static let todayTint = Color(red: 0.18, green: 0.49, blue: 0.20)
+}
+
 struct TodayView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var vm = TodayViewModel()
@@ -103,6 +107,7 @@ struct TodayView: View {
             .onChange(of: vm.alcoholDrinks) { _, _ in vm.saveConfounders(context: context) }
             .onChange(of: vm.caffeineDrinks) { _, _ in vm.saveConfounders(context: context) }
             .onChange(of: vm.waterGlasses) { _, _ in vm.saveConfounders(context: context) }
+            .tint(.todayTint)
         }
     }
 }
