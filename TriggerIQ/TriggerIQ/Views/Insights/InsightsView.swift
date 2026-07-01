@@ -251,14 +251,23 @@ private struct HydrationTrendChart: View {
             }
 
             Chart {
+                if let startDate = points.first?.date, let endDate = points.last?.date {
+                    RectangleMark(
+                        xStart: .value("Start", startDate),
+                        xEnd: .value("End", endDate),
+                        yStart: .value("Recommended min", 1),
+                        yEnd: .value("Recommended max", 3)
+                    )
+                    .foregroundStyle(Color.green.opacity(0.12))
+                }
+
                 ForEach(points) { point in
-                    // Smoothed rolling average (past 5 logs) shown as a dotted line
                     LineMark(
                         x: .value("Date", point.date),
                         y: .value("Rolling avg", point.rollingAverage)
                     )
                     .foregroundStyle(Color.accentColor.opacity(0.7))
-                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 4]))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
                     .interpolationMethod(.catmullRom)
 
                     PointMark(
@@ -327,14 +336,23 @@ private struct StoolTrendChart: View {
             }
 
             Chart {
+                if let startDate = points.first?.date, let endDate = points.last?.date {
+                    RectangleMark(
+                        xStart: .value("Start", startDate),
+                        xEnd: .value("End", endDate),
+                        yStart: .value("Recommended min", 3),
+                        yEnd: .value("Recommended max", 4)
+                    )
+                    .foregroundStyle(Color.green.opacity(0.12))
+                }
+
                 ForEach(points) { point in
-                    // Smoothed rolling average (past 5 logs) shown as a dotted line
                     LineMark(
                         x: .value("Date", point.date),
                         y: .value("Rolling avg", point.rollingAverage)
                     )
                     .foregroundStyle(Color.accentColor.opacity(0.7))
-                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 4]))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
                     .interpolationMethod(.catmullRom)
 
                     PointMark(
