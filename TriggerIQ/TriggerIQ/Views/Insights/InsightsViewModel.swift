@@ -3,10 +3,17 @@ import SwiftData
 import Combine
 
 struct ScorePoint: Identifiable {
-    let id = UUID()
+    let id: UUID
     let date: Date
     let score: Double
     let mealType: MealType
+
+    init(id: UUID = UUID(), date: Date, score: Double, mealType: MealType) {
+        self.id = id
+        self.date = date
+        self.score = score
+        self.mealType = mealType
+    }
 }
 
 extension Array where Element == ScorePoint {
@@ -18,7 +25,7 @@ extension Array where Element == ScorePoint {
             let start = Swift.max(0, index - windowSize + 1)
             let window = self[start...index]
             let avg = window.map(\.score).reduce(0, +) / Double(window.count)
-            return ScorePoint(date: self[index].date, score: avg, mealType: self[index].mealType)
+            return ScorePoint(id: self[index].id, date: self[index].date, score: avg, mealType: self[index].mealType)
         }
     }
 }
