@@ -197,7 +197,7 @@ struct AnalysisServiceTests {
         }
     }
 
-    @Test func reanalyzeChangesConfirmTokenAfterManualTextAnalysis() async throws {
+    @Test func reanalyzeChangesConfirmTokenAfterInitialManualTextAnalysis() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()
         let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
@@ -225,7 +225,7 @@ struct AnalysisServiceTests {
         #expect(result.rawDescription == "grilled chicken with rice")
     }
 
-    @Test func reanalyzeChangesConfirmTokenAfterPhotoAnalysis() async throws {
+    @Test func reanalyzeChangesConfirmTokenAfterInitialPhotoAnalysis() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()
         let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
