@@ -177,7 +177,7 @@ struct InsightsViewModelTests {
     @Test func rollingAveragedSmoothsSingleOutlier() {
         let points = makePoints([2, 2, 2, 10, 2])
         let result = points.rollingAveraged(windowSize: 5)
-        // The outlier should be smoothed out rather than plotted at full magnitude.
-        #expect(result.last!.score < 10.0)
+        // The outlier point itself (index 3) should be smoothed by averaging the trailing window.
+        #expect(result[3].score == 4.0)
     }
 }
