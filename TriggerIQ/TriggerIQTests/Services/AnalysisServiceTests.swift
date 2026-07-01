@@ -149,7 +149,7 @@ struct AnalysisServiceTests {
         #expect(meal.foodTags.count == 1)
     }
 
-    @Test func reanalyzeUpdatesStepWithNewResult() async throws {
+    @Test func reanalyzeWithValidDescriptionUpdatesStepWithNewResult() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()
         let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
