@@ -20,6 +20,9 @@ final class LogMealViewModel: ObservableObject {
     @Published var mealType: MealType = MealType.suggested(for: Date())
     @Published var isSaved = false
     @Published var isReanalyzing = false
+    // Changes every time a new analysis result is produced (initial or reanalyze) so the
+    // confirm screen resets its @State (description/food tags) instead of keeping stale values.
+    @Published private(set) var confirmToken = UUID()
 
     private let analysisService: AnalysisServiceProtocol
     private let schedulingService: NotificationSchedulingServiceProtocol
@@ -38,12 +41,17 @@ final class LogMealViewModel: ObservableObject {
         self.photoStorage = photoStorage ?? resolve()
     }
 
+    private func setConfirmStep(_ result: AnalysisResult) {
+        confirmToken = UUID()
+        step = .confirm(result)
+    }
+
     func analyzeCapturedPhoto(_ jpegData: Data) async {
         pendingPhotoData = jpegData
         step = .analyzing
         do {
             let result = try await analysisService.analyze(imageData: jpegData)
-            step = .confirm(result)
+            setConfirmStep(result)
         } catch {
             pendingPhotoData = nil
             step = .error(error.localizedDescription)
@@ -65,7 +73,7 @@ final class LogMealViewModel: ObservableObject {
                 jpegData = data
             }
             let result = try await analysisService.analyze(imageData: jpegData)
-            step = .confirm(result)
+            setConfirmStep(result)
         } catch {
             step = .error(error.localizedDescription)
         }
@@ -76,14 +84,15 @@ final class LogMealViewModel: ObservableObject {
         step = .analyzing
         do {
             let result = try await analysisService.analyze(text: manualText)
-            step = .confirm(result)
+            setConfirmStep(result)
         } catch {
             step = .error(error.localizedDescription)
         }
     }
 
     /// Re-runs analysis on a user-edited description so a corrected detail can be reflected
-    /// in the predicted score and detected ingredients before saving.
+    /// in the predicted score and detected ingredients before saving. Works regardless of
+    /// whether the original description came from a photo or manual text entry.
     func reanalyze(description: String) async {
         let trimmed = description.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -91,7 +100,7 @@ final class LogMealViewModel: ObservableObject {
         defer { isReanalyzing = false }
         do {
             let result = try await analysisService.analyze(text: trimmed)
-            step = .confirm(result)
+            setConfirmStep(result)
         } catch {
             step = .error(error.localizedDescription)
         }

@@ -54,6 +54,7 @@ struct LogMealSheet: View {
             AnalyzingView()
         case .confirm(let result):
             MealConfirmView(vm: vm, result: result, context: context)
+                .id(vm.confirmToken)
         case .error(let message):
             ErrorView(message: message, vm: vm)
         }

@@ -197,6 +197,62 @@ struct AnalysisServiceTests {
         }
     }
 
+    @Test func reanalyzeChangesConfirmTokenAfterManualTextAnalysis() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // Simulate the manual-entry flow reaching the confirm step first.
+        vm.manualText = "grilled chicken"
+        await vm.analyzeText()
+        let tokenAfterInitialAnalysis = vm.confirmToken
+
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "grilled chicken with rice",
+            predictedScore: 4.0,
+            foodTags: [ParsedFoodTag(rawName: "rice", canonicalTag: "grain", category: "carb")],
+            portionEstimate: nil,
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "grilled chicken with rice")
+
+        #expect(vm.confirmToken != tokenAfterInitialAnalysis)
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "grilled chicken with rice")
+    }
+
+    @Test func reanalyzeChangesConfirmTokenAfterPhotoAnalysis() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        // Simulate the photo flow reaching the confirm step first.
+        await vm.analyzeCapturedPhoto(Data(repeating: 0, count: 10))
+        let tokenAfterInitialAnalysis = vm.confirmToken
+
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "Corrected photo description",
+            predictedScore: 6.0,
+            foodTags: [ParsedFoodTag(rawName: "kale", canonicalTag: "leafy greens", category: "vegetable")],
+            portionEstimate: nil,
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "Corrected photo description")
+
+        #expect(vm.confirmToken != tokenAfterInitialAnalysis)
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "Corrected photo description")
+        #expect(result.foodTags.first?.rawName == "kale")
+    }
+
     @Test func saveTriggersCheckInScheduling() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()
