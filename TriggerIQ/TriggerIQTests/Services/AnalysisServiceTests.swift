@@ -149,6 +149,54 @@ struct AnalysisServiceTests {
         #expect(meal.foodTags.count == 1)
     }
 
+    @Test func reanalyzeUpdatesStepWithNewResult() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        mockAnalysis.stubbedResult = AnalysisResult(
+            rawDescription: "Corrected description",
+            predictedScore: 5.0,
+            foodTags: [ParsedFoodTag(rawName: "salmon", canonicalTag: "fish", category: "protein")],
+            portionEstimate: "large",
+            modelVersion: "mock-1.0"
+        )
+
+        await vm.reanalyze(description: "Corrected description")
+
+        #expect(mockAnalysis.analyzeTextCalled == true)
+        guard case .confirm(let result) = vm.step else {
+            Issue.record("Expected confirm step after reanalysis")
+            return
+        }
+        #expect(result.rawDescription == "Corrected description")
+        #expect(result.predictedScore == 5.0)
+    }
+
+    @Test func reanalyzeIgnoresBlankDescription() async throws {
+        let mockAnalysis = MockAnalysisService()
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        await vm.reanalyze(description: "   ")
+
+        #expect(mockAnalysis.analyzeTextCalled == false)
+    }
+
+    @Test func reanalyzeSetsErrorStepOnFailure() async throws {
+        let mockAnalysis = MockAnalysisService()
+        mockAnalysis.shouldThrow = true
+        let mockScheduling = MockNotificationSchedulingService()
+        let vm = LogMealViewModel(analysisService: mockAnalysis, schedulingService: mockScheduling)
+
+        await vm.reanalyze(description: "Something new")
+
+        guard case .error = vm.step else {
+            Issue.record("Expected error step after failed reanalysis")
+            return
+        }
+    }
+
     @Test func saveTriggersCheckInScheduling() async throws {
         let mockAnalysis = MockAnalysisService()
         let mockScheduling = MockNotificationSchedulingService()

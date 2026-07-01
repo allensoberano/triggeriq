@@ -19,6 +19,7 @@ final class LogMealViewModel: ObservableObject {
     @Published var manualText: String = ""
     @Published var mealType: MealType = MealType.suggested(for: Date())
     @Published var isSaved = false
+    @Published var isReanalyzing = false
 
     private let analysisService: AnalysisServiceProtocol
     private let schedulingService: NotificationSchedulingServiceProtocol
@@ -75,6 +76,21 @@ final class LogMealViewModel: ObservableObject {
         step = .analyzing
         do {
             let result = try await analysisService.analyze(text: manualText)
+            step = .confirm(result)
+        } catch {
+            step = .error(error.localizedDescription)
+        }
+    }
+
+    /// Re-runs analysis on a user-edited description so a corrected detail can be reflected
+    /// in the predicted score and detected ingredients before saving.
+    func reanalyze(description: String) async {
+        let trimmed = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        isReanalyzing = true
+        defer { isReanalyzing = false }
+        do {
+            let result = try await analysisService.analyze(text: trimmed)
             step = .confirm(result)
         } catch {
             step = .error(error.localizedDescription)

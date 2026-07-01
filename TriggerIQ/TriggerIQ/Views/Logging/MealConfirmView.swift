@@ -36,6 +36,23 @@ struct MealConfirmView: View {
             Section("Description") {
                 TextField("What did you eat?", text: $editedDescription, axis: .vertical)
                     .lineLimit(3...8)
+
+                if editedDescription.trimmingCharacters(in: .whitespacesAndNewlines) != result.rawDescription.trimmingCharacters(in: .whitespacesAndNewlines) {
+                    Button {
+                        Task { await vm.reanalyze(description: editedDescription) }
+                    } label: {
+                        if vm.isReanalyzing {
+                            HStack {
+                                ProgressView()
+                                Text("Reanalyzing…")
+                            }
+                        } else {
+                            Label("Reanalyze with edited description", systemImage: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(vm.isReanalyzing || editedDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityIdentifier("reanalyzeButton")
+                }
             }
 
             Section("Inflammation score") {
